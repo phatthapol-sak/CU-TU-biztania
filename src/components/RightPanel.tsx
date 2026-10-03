@@ -26,6 +26,9 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   if (!extracted || !calculation) return null;
 
   const isAnomaly = calculation.baselineComparison.isAnomaly;
+  const severity = calculation.baselineComparison.anomalySeverity;
+  const isHighRisk = severity === 'HIGH' || severity === 'CRITICAL';
+  const isMediumRisk = severity === 'MEDIUM';
   const alt = selectedAlternative;
 
   return (
@@ -49,25 +52,37 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
       {/* Restrained Technical Diagnosis Card */}
       <div className={`p-4 rounded border text-xs font-mono space-y-3 ${
-        isAnomaly
+        isHighRisk
           ? 'bg-rose-950/20 border-rose-800 text-rose-200'
+          : isMediumRisk
+          ? 'bg-amber-950/20 border-amber-800 text-amber-200'
           : 'bg-zinc-950 border-zinc-800 text-zinc-200'
       }`}>
         <div className="flex items-center justify-between border-b border-zinc-800 pb-2 gap-2">
           <div className="flex items-center space-x-2 min-w-0">
-            {isAnomaly ? (
+            {isHighRisk ? (
               <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            ) : isMediumRisk ? (
+              <ShieldCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
             ) : (
               <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             )}
             <span className="font-bold uppercase tracking-wider text-xs whitespace-nowrap">
-              {isAnomaly ? 'CARBON ANOMALY DIAGNOSIS' : 'NOMINAL BASELINE AUDIT'}
+              {isHighRisk 
+                ? 'CARBON ANOMALY DIAGNOSIS' 
+                : isMediumRisk 
+                ? 'MODERATE FOOTPRINT AUDIT' 
+                : 'NOMINAL BASELINE AUDIT'}
             </span>
           </div>
           <span className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap flex-shrink-0 ${
-            isAnomaly ? 'bg-rose-900/60 text-rose-300 border border-rose-700' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+            isHighRisk 
+              ? 'bg-rose-900/60 text-rose-300 border border-rose-700' 
+              : isMediumRisk
+              ? 'bg-amber-950 text-amber-400 border border-amber-800'
+              : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
           }`}>
-            {calculation.baselineComparison.anomalySeverity} SEVERITY
+            {severity} SEVERITY
           </span>
         </div>
 
@@ -75,8 +90,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           {calculation.baselineComparison.anomalyReason}
         </p>
 
-        {/* Symmetrical 3-Column Trade-off Box */}
-        {alt && (
+        {/* Symmetrical 3-Column Trade-off Box when High Anomaly */}
+        {alt && isHighRisk && (
           <div className="bg-zinc-900 border border-zinc-800 rounded p-3 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-bold text-zinc-400 uppercase font-mono">
               <span>RECOMMENDED TRADE-OFF</span>
@@ -93,9 +108,25 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               </div>
               <div className="bg-zinc-950 p-2 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">LEAD TIME</span>
-                <span className="font-bold text-zinc-300 text-xs">+{alt.leadTimeDays - 3}d</span>
+                <span className="font-bold text-zinc-300 text-xs">+{Math.max(1, alt.leadTimeDays - 1)}d</span>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Compliant Banner when Medium or Low */}
+        {!isHighRisk && (
+          <div className={`border rounded p-3 text-[11px] font-mono flex items-center justify-between ${
+            isMediumRisk ? 'bg-amber-950/20 border-amber-800/60 text-amber-300' : 'bg-emerald-950/20 border-emerald-800/60 text-emerald-300'
+          }`}>
+            <span className="flex items-center gap-1.5 font-bold">
+              {isMediumRisk ? '⚡ CIRCULAR MATERIAL VERIFIED: MODERATE FOOTPRINT' : '✓ ESG VERIFIED: COMPLIANT WITH SCOPE 3 TARGETS'}
+            </span>
+            <span className={`text-[10px] border px-2 py-0.5 rounded font-bold whitespace-nowrap ${
+              isMediumRisk ? 'bg-amber-900/60 border-amber-700 text-amber-200' : 'bg-emerald-900/60 border-emerald-700 text-emerald-200'
+            }`}>
+              {isMediumRisk ? 'BALANCED' : 'OPTIMAL'}
+            </span>
           </div>
         )}
       </div>

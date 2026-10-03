@@ -24,6 +24,10 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
 
   if (!extracted || !calculation) return null;
 
+  const isTHB = extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI');
+  const currSym = isTHB ? '฿' : '$';
+  const currUnit = isTHB ? 'THB' : 'USD';
+
   const activeAlt = alternatives.find(a => a.id === selectedAltId) || alternatives[0];
 
   // Recharts scenario data
@@ -119,10 +123,10 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                         -{alt.carbonReductionPercentage}% tCO2e
                       </span>
                       <span className="text-zinc-400">
-                        +{alt.costDiffPercentage}% USD
+                        +{alt.costDiffPercentage}% {currUnit}
                       </span>
-                      <span className="text-zinc-500">
-                        {alt.transportMode.split(' ')[0]}
+                      <span className="text-zinc-500 truncate" title={`${alt.transportMode} • ${alt.location}`}>
+                        {alt.transportMode.split(' ')[0]} • {alt.location ? alt.location.split(',')[0] : 'TH'}
                       </span>
                     </div>
                   </button>
@@ -135,14 +139,14 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
           <div className="bg-zinc-950 border border-zinc-800 rounded p-4 space-y-2">
             <div className="flex items-center justify-between font-mono text-[10px]">
               <span className="font-bold text-zinc-400 uppercase">
-                CARBON FOOTPRINT (tCO2e) & TOTAL COST ($ USD) SCENARIO COMPARISON
+                CARBON FOOTPRINT (tCO2e) & TOTAL SPEND ({currUnit}) SCENARIO COMPARISON
               </span>
               <div className="flex items-center space-x-3 text-zinc-400 whitespace-nowrap">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-sm bg-emerald-500"></span> Emissions (tCO2e)
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-sm bg-zinc-400"></span> Total Spend ($ USD)
+                  <span className="w-2 h-2 rounded-sm bg-zinc-400"></span> Total Spend ({currSym} {currUnit})
                 </span>
               </div>
             </div>
@@ -159,7 +163,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                     labelStyle={{ color: '#f4f4f5', fontWeight: 'bold' }}
                   />
                   <Bar yAxisId="left" dataKey="Emissions_tCO2e" name="Emissions (tCO2e)" fill="#10b981" radius={[0, 0, 0, 0]} barSize={36} />
-                  <Bar yAxisId="right" dataKey="Cost_USD" name="Cost ($ USD)" fill="#71717a" radius={[0, 0, 0, 0]} barSize={36} />
+                  <Bar yAxisId="right" dataKey="Cost_USD" name={`Spend (${currSym} ${currUnit})`} fill="#71717a" radius={[0, 0, 0, 0]} barSize={36} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -17,9 +17,9 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 
 ### 1. 📑 Tab 1: `[01. DOCUMENT INGESTION & TECHNICAL INSPECTOR]`
 - **Demo Document Presets:** เลือกทดสอบนำเข้าเอกสารจำลองล่วงหน้า 3 รูปแบบ:
-  1. *Supplier A - Virgin PP Plastic Invoice* (🔴 High Carbon Anomaly: 17.35 tCO2e)
-  2. *Supplier B - Recycled Polymer Waybill* (🟡 Medium Footprint: 4.76 tCO2e)
-  3. *Supplier C - Packaging Cardboard* (🟢 Low Footprint: 2.89 tCO2e)
+  1. *Supplier A - Thai Plastics Industry (Rayong → Chonburi):* 2,000 kg Virgin PP @ ฿50/kg = ฿100,000 THB (🔴 High Carbon Anomaly: 3.28 tCO2e)
+  2. *Supplier B - Thai EcoPolymer Solutions (Samut Prakan → Chonburi):* 4,000 kg rPP @ ฿58/kg = ฿232,000 THB (🟡 Moderate Footprint: 3.14 tCO2e)
+  3. *Supplier C - Thai BioPack Packaging (Saraburi → Chonburi):* 3,000 kg Corrugated Packaging @ ฿25/kg = ฿75,000 THB (🟢 Nominal Baseline: 2.88 tCO2e)
 - **Custom File Upload:** รองรับการลากวาง (Drag & Drop) ไฟล์ PDF/PNG/JPG ชนิด Invoices, BOMs และ Waybills
 - **Gemini Vision AI Engine:** สกัดข้อมูลโครงสร้าง JSON (Pydantic/TypeScript Schema) เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
 - **Technical Sheet Inspector:** แสดงผลการตรวจสอบเอกสารสเปกอย่างละเอียด หรือเลือกสลับดู **Raw Extracted JSON** ได้ทันที
@@ -32,12 +32,19 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 - **Anomaly Highlight:** Node ที่ปล่อยคาร์บอนเกินเกณฑ์จะเน้นด้วยขอบสีแดง (`border-rose-800 font-bold`) โดยไม่มีเอฟเฟกต์ไฟนีออนหรือวงกลมลอยที่ไม่เป็นระเบียบ
 
 ### 3. 📊 Tab 3: `[03. SCENARIO ANALYTICS & AUTONOMOUS ACTIONS]`
-- **Multi-Objective Scenario Matrix:** เปรียบเทียบทางเลือกจัดซื้อสีเขียว (เช่น *EcoPolymer Solutions Ltd* ที่ใช้เม็ด rPP ขนส่งด้วยรถไฟไฟฟ้า)
-- **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบระหว่างสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost ($ USD)**
-- **GHG Protocol DEFRA / TGO Audit Database:** ตารางอ้างอิงค่า Emission Factors มาตรฐาน ( Virgin PP `2.10 kgCO2e/kg`, rPP `0.78 kgCO2e/kg`, Electric Rail Freight `0.028 kgCO2e/tonne-km`)
-- **Copilot Diagnosis Card:** การวินิจฉัยความเสี่ยงคาร์บอนและตารางสรุปผลกระทบ 3 มิติ (Carbon Delta, Cost Delta, Lead Time)
+- **Live Google Sheets ERP Integration:** เชื่อมต่อฐานข้อมูลจัดซื้อแบบสดผ่าน Google Sheets:
+  - 🔗 **Google Sheet ERP Database:** [เข้าสู่ตารางฐานข้อมูล Google Sheet ↗](https://docs.google.com/spreadsheets/d/17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4/edit?gid=0#gid=0)
+  - เชื่อมต่อผ่าน API Proxy Server (`/api/sheets`) ขจัดปัญหา Browser CORS
+  - เมื่อแก้ไขราคา `price_per_kg`, ค่า `emission_factor`, `transport_mode`, `certifications` หรือ `location` ใน Google Sheet ระบบจะคำนวณใหม่และอัปเดตทั้งการ์ดและกราฟแบบ Real-time เพียงกด **`↻ Re-sync Sheet Data`**
+- **Multi-Objective Scenario Matrix:** เปรียบเทียบทางเลือกจัดซื้อสีเขียว (เช่น *EcoPolymer Solutions Ltd* ที่ใช้เม็ด rPP ขนส่งด้วยรถไฟไฟฟ้า และ *GreenTech Materials* เม็ดพลาสติกชีวภาพ)
+- **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบระหว่างสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost (฿ THB / $ USD)**
+- **GHG Protocol DEFRA / TGO Audit Database:** ตารางอ้างอิงค่า Emission Factors มาตรฐาน ( Virgin PP `1.63 - 2.10 kgCO2e/kg`, rPP `0.50 - 0.78 kgCO2e/kg`, Electric Rail Freight `0.028 kgCO2e/tonne-km`)
+- **Copilot 3-Tier Audit Card:**
+  - 🔴 **HIGH SEVERITY:** Carbon Anomaly Flagged (Virgin PP Resin) แสดงกล่อง Trade-off (Carbon vs Cost vs Lead Time)
+  - 🟡 **MEDIUM SEVERITY:** Moderate Footprint Audit (Recycled rPP Resin) แสดงแถบ Circular Material Verified (Balanced)
+  - 🟢 **LOW SEVERITY:** Nominal Baseline Audit (Packaging Cardboard) แสดงแถบ ESG Compliant (Optimal)
 - **Autonomous Action Center:**
-  - 📄 **Generate Green RFQ:** สร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว
+  - 📄 **Generate Green RFQ:** สร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว ระบุโหมดขนส่ง สถานที่ และการรับรองมาตรฐานสากล
   - ✉️ **Draft Negotiation Email:** ร่างอีเมลเจรจาขอใบรับรองคาร์บอนฟุตพริ้นท์ (CFP) จากซัพพลายเออร์
   - 🚀 **Dispatch ERP Webhook:** ส่งข้อมูลสั่งซื้อใหม่ไปยังระบบ SAP S/4HANA / NetSuite ERP พร้อมเก็บบันทึก Audit Trail Log
 

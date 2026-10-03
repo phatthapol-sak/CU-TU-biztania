@@ -61,9 +61,9 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
     {
       id: 'node-production',
       title: 'Production Facility',
-      name: 'Assembly Hub 1 (Line A)',
+      name: extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? 'Assembly Hub 1, Chonburi' : 'Assembly Hub 1 (Line A)',
       value: `PO: ${extracted.poNumber}`,
-      subtext: `$${extracted.totalCostUSD.toLocaleString()} USD`,
+      subtext: `${extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? '฿' : '$'}${extracted.totalCostUSD.toLocaleString()} ${extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? 'THB' : 'USD'}`,
       type: 'PRODUCT',
       icon: Box,
       x: 580,
@@ -73,8 +73,12 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
       id: 'node-carbon',
       title: 'Scope 3 Audit Outcome',
       name: `${calculation.totalEmissionsTCO2e} tCO2e Footprint`,
-      value: isAnomaly ? '⚠️ High Carbon Anomaly' : '✓ Nominal Baseline',
-      subtext: `Threshold: 10.0 tCO2e`,
+      value: isAnomaly 
+        ? '⚠️ High Carbon Anomaly' 
+        : severity === 'MEDIUM' 
+        ? '⚡ Moderate Footprint' 
+        : '✓ Nominal Baseline',
+      subtext: `Baseline: ${calculation.baselineComparison.baselineTCO2e} tCO2e`,
       type: 'EMISSION_SCORE',
       icon: isAnomaly ? ShieldAlert : CheckCircle2,
       x: 580,
@@ -119,11 +123,12 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
           { key: 'EMISSIONS_TOTAL', val: `${(calculation.materialEmissionsKgCO2e / 1000).toFixed(2)} tCO2e` }
         ];
       case 'node-production':
+        const isThaiFacility = extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI');
         return [
-          { key: 'FACILITY_DESTINATION', val: 'GreenScope Assembly Hub 1, Columbus OH' },
+          { key: 'FACILITY_DESTINATION', val: isThaiFacility ? 'GreenScope Assembly Hub 1, Chonburi' : 'GreenScope Assembly Hub 1, Columbus OH' },
           { key: 'PO_NUMBER', val: extracted.poNumber },
-          { key: 'TOTAL_COST_USD', val: `$${extracted.totalCostUSD.toLocaleString()}` },
-          { key: 'CARBON_INTENSITY', val: `${calculation.carbonIntensityPerUSD} kgCO2e / $` }
+          { key: isThaiFacility ? 'TOTAL_COST_THB' : 'TOTAL_COST_USD', val: `${isThaiFacility ? '฿' : '$'}${extracted.totalCostUSD.toLocaleString()}` },
+          { key: 'CARBON_INTENSITY', val: `${calculation.carbonIntensityPerUSD} kgCO2e / ${isThaiFacility ? '฿' : '$'}` }
         ];
       case 'node-carbon':
       default:
@@ -235,6 +240,10 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
               cardFill = '#270e0f';
               cardStroke = '#9f1239';
               titleColor = '#fecdd3';
+            } else if (node.id === 'node-carbon' && severity === 'MEDIUM') {
+              cardFill = '#261a06';
+              cardStroke = '#92400e';
+              titleColor = '#fde68a';
             } else if (isSelected) {
               cardStroke = '#71717a';
             }
@@ -291,7 +300,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
                 </g>
 
                 <g transform="translate(48, -24)">
-                  <IconComponent className={`w-3.5 h-3.5 ${node.isHigh ? 'text-rose-400' : 'text-zinc-400'}`} />
+                  <IconComponent className={`w-3.5 h-3.5 ${node.isHigh ? 'text-rose-400' : (node.id === 'node-carbon' && severity === 'MEDIUM') ? 'text-amber-400' : 'text-zinc-400'}`} />
                 </g>
 
                 {/* Node Name */}

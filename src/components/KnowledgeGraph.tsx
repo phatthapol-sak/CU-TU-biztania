@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Network, Factory, Truck, Box, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react';
-import { CarbonCalculation, ExtractedDocumentData, GraphNode, GraphEdge } from '@/types';
+import { Network, Factory, Truck, Box, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { CarbonCalculation, ExtractedDocumentData } from '@/types';
 
 interface KnowledgeGraphProps {
   extracted: ExtractedDocumentData | null;
@@ -10,12 +10,12 @@ interface KnowledgeGraphProps {
 }
 
 export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calculation }) => {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>('node-carbon');
+  const [selectedStage, setSelectedStage] = useState<string>('outcome');
 
   if (!extracted || !calculation) {
     return (
-      <div className="h-64 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-center text-slate-500 text-xs">
-        No graph data available
+      <div className="h-64 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-center text-zinc-500 font-mono text-xs">
+        [GRAPH_DATA_UNAVAILABLE]
       </div>
     );
   }
@@ -23,267 +23,217 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
   const isAnomaly = calculation.baselineComparison.isAnomaly;
   const severity = calculation.baselineComparison.anomalySeverity;
 
-  // Build dynamic Graph Nodes based on current extraction
-  const nodes: GraphNode[] = [
+  // Stages definition
+  const stages = [
     {
-      id: 'node-supplier',
-      label: extracted.supplierName,
-      type: 'SUPPLIER',
-      value: extracted.supplierId,
-      subtext: 'Primary Tier-1 Supplier',
-      x: 100,
-      y: 80
+      id: 'supplier',
+      stageNum: '01',
+      title: 'Tier-1 Supplier',
+      name: extracted.supplierName,
+      detail: `ID: ${extracted.supplierId}`,
+      metric: extracted.issueDate,
+      icon: Factory,
+      statusColor: 'border-zinc-700 text-zinc-300'
     },
     {
-      id: 'node-material',
-      label: extracted.materialName,
-      type: 'MATERIAL',
-      value: `${extracted.quantity.toLocaleString()} ${extracted.unit}`,
-      subtext: calculation.matchedMaterialEF.name,
-      x: 290,
-      y: 70
+      id: 'logistics',
+      stageNum: '02',
+      title: 'Logistics Carrier',
+      name: extracted.transportMode,
+      detail: `${extracted.distanceKm} km freight route`,
+      metric: calculation.matchedTransportEF.source.split('/')[0],
+      icon: Truck,
+      statusColor: 'border-zinc-700 text-zinc-300'
     },
     {
-      id: 'node-logistics',
-      label: extracted.transportMode,
-      type: 'LOGISTICS',
-      value: `${extracted.distanceKm} km`,
-      subtext: calculation.matchedTransportEF.name,
-      x: 290,
-      y: 190
+      id: 'material',
+      stageNum: '03',
+      title: 'Material Ingestion',
+      name: extracted.materialName,
+      detail: `${extracted.quantity.toLocaleString()} ${extracted.unit} @ $${extracted.unitCostUSD}/kg`,
+      metric: `${calculation.matchedMaterialEF.factorKgCO2ePerUnit} kgCO2e/kg`,
+      icon: Box,
+      statusColor: isAnomaly ? 'border-rose-800 bg-rose-950/20 text-rose-300' : 'border-zinc-700 text-zinc-300'
     },
     {
-      id: 'node-product',
-      label: 'Assembly Hub 1 (Product Line A)',
-      type: 'PRODUCT',
-      value: extracted.poNumber,
-      subtext: 'Manufacturing Facility',
-      x: 480,
-      y: 80
-    },
-    {
-      id: 'node-carbon',
-      label: 'Scope 3 Footprint',
-      type: 'EMISSION_SCORE',
-      severity: severity === 'CRITICAL' || severity === 'HIGH' ? 'HIGH' : severity === 'MEDIUM' ? 'MEDIUM' : 'LOW',
-      value: `${calculation.totalEmissionsTCO2e} tCO2e`,
-      subtext: isAnomaly ? '⚠️ High Carbon Anomaly' : '✓ Normal Emission Range',
-      x: 480,
-      y: 190
+      id: 'production',
+      stageNum: '04',
+      title: 'Production Facility',
+      name: 'Assembly Hub 1 (Line A)',
+      detail: `PO Ref: ${extracted.poNumber}`,
+      metric: `$${extracted.totalCostUSD.toLocaleString()} USD`,
+      icon: Box,
+      statusColor: 'border-zinc-700 text-zinc-300'
     }
   ];
 
-  const edges: GraphEdge[] = [
-    { id: 'edge-1', source: 'node-supplier', target: 'node-material', label: 'SUPPLIES' },
-    { id: 'edge-2', source: 'node-supplier', target: 'node-logistics', label: 'TRANSPORTED_BY' },
-    { id: 'edge-3', source: 'node-material', target: 'node-product', label: 'IN_PRODUCT' },
-    { id: 'edge-4', source: 'node-material', target: 'node-carbon', label: 'EMITS' },
-    { id: 'edge-5', source: 'node-logistics', target: 'node-carbon', label: 'EMITS' }
-  ];
+  // Selected details resolver
+  const getStageDetail = (id: string) => {
+    switch (id) {
+      case 'supplier':
+        return {
+          label: 'TIER-1 VENDOR SPECIFICATION',
+          data: [
+            { key: 'SUPPLIER_NAME', val: extracted.supplierName },
+            { key: 'VENDOR_ID', val: extracted.supplierId },
+            { key: 'DOCUMENT_ID', val: extracted.documentId },
+            { key: 'DOCUMENT_TYPE', val: extracted.documentType }
+          ]
+        };
+      case 'logistics':
+        return {
+          label: 'FREIGHT & LOGISTICS PARAMETERS',
+          data: [
+            { key: 'TRANSPORT_MODE', val: extracted.transportMode },
+            { key: 'ROUTE_DISTANCE', val: `${extracted.distanceKm} km` },
+            { key: 'MATCHED_FACTOR', val: `${calculation.matchedTransportEF.factorKgCO2ePerUnit} kgCO2e/tonne-km` },
+            { key: 'EF_SOURCE', val: calculation.matchedTransportEF.source }
+          ]
+        };
+      case 'material':
+        return {
+          label: 'RAW MATERIAL EMISSION FACTOR AUDIT',
+          data: [
+            { key: 'MATERIAL_TRADE_NAME', val: extracted.materialName },
+            { key: 'QUANTITY_INGESTED', val: `${extracted.quantity.toLocaleString()} ${extracted.unit}` },
+            { key: 'PRIMARY_EF', val: `${calculation.matchedMaterialEF.factorKgCO2ePerUnit} kgCO2e/kg` },
+            { key: 'MATERIAL_EMISSIONS', val: `${(calculation.materialEmissionsKgCO2e / 1000).toFixed(2)} tCO2e` }
+          ]
+        };
+      case 'production':
+        return {
+          label: 'FACILITY & PURCHASE ORDER ROUTING',
+          data: [
+            { key: 'FACILITY_DESTINATION', val: 'GreenScope Assembly Hub 1, Columbus OH' },
+            { key: 'PO_NUMBER', val: extracted.poNumber },
+            { key: 'TOTAL_COMMITTED_COST', val: `$${extracted.totalCostUSD.toLocaleString()} USD` },
+            { key: 'CARBON_INTENSITY', val: `${calculation.carbonIntensityPerUSD} kgCO2e / $` }
+          ]
+        };
+      case 'outcome':
+      default:
+        return {
+          label: 'SCOPE 3 CARBON AUDIT OUTCOME',
+          data: [
+            { key: 'TOTAL_FOOTPRINT', val: `${calculation.totalEmissionsTCO2e} tCO2e` },
+            { key: 'RISK_SEVERITY', val: severity },
+            { key: 'BASELINE_THRESHOLD', val: `${calculation.baselineComparison.baselineTCO2e} tCO2e` },
+            { key: 'DEVIATION_DELTA', val: `${calculation.baselineComparison.diffPercentage > 0 ? '+' : ''}${calculation.baselineComparison.diffPercentage}%` }
+          ]
+        };
+    }
+  };
 
-  const activeNode = nodes.find(n => n.id === selectedNodeId) || nodes[4];
+  const selectedData = getStageDetail(selectedStage);
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-4">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col space-y-4">
       
       {/* Panel Header */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center space-x-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold">
-            2
+          <span className="flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-zinc-300 font-mono text-[11px] font-bold">
+            02
           </span>
-          <h2 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-1.5">
-            <Network className="w-4 h-4 text-emerald-400" />
-            Pillar 2: Dynamic Supply Chain Knowledge Graph
+          <h2 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+            <Network className="w-3.5 h-3.5 text-zinc-400" />
+            Supply Chain Architecture Flow
           </h2>
         </div>
-        <span className="text-[11px] font-medium text-slate-400">Interactive Canvas</span>
+        <span className="text-[10px] font-mono text-zinc-500 uppercase">Interactive Stage Inspector</span>
       </div>
 
-      {/* SVG Knowledge Graph Visualizer */}
-      <div className="relative bg-slate-950/90 border border-slate-800/80 rounded-xl p-4 overflow-hidden min-h-[260px] flex items-center justify-center">
-        
-        {/* Ambient Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:24px_24px] opacity-20 pointer-events-none"></div>
-
-        <svg viewBox="0 0 580 250" className="w-full h-auto max-h-[260px] relative z-10">
-          <defs>
-            <linearGradient id="edgeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.8" />
-            </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
-          {/* Render Connections / Edges */}
-          {edges.map(edge => {
-            const srcNode = nodes.find(n => n.id === edge.source);
-            const tgtNode = nodes.find(n => n.id === edge.target);
-            if (!srcNode || !tgtNode) return null;
-            if (srcNode.x === undefined || srcNode.y === undefined || tgtNode.x === undefined || tgtNode.y === undefined) return null;
-
-            const isConnectedToActive = selectedNodeId === edge.source || selectedNodeId === edge.target;
-
-            return (
-              <g key={edge.id}>
-                <line
-                  x1={srcNode.x}
-                  y1={srcNode.y}
-                  x2={tgtNode.x}
-                  y2={tgtNode.y}
-                  stroke={isConnectedToActive ? '#10b981' : '#334155'}
-                  strokeWidth={isConnectedToActive ? 2.5 : 1.5}
-                  strokeDasharray={isConnectedToActive ? 'none' : '4 4'}
-                  className="transition-all duration-300"
-                />
-                {/* Midpoint Label */}
-                <rect
-                  x={(srcNode.x + tgtNode.x) / 2 - 24}
-                  y={(srcNode.y + tgtNode.y) / 2 - 8}
-                  width="48"
-                  height="14"
-                  rx="3"
-                  fill="#020617"
-                  stroke="#1e293b"
-                  strokeWidth="0.5"
-                />
-                <text
-                  x={(srcNode.x + tgtNode.x) / 2}
-                  y={(srcNode.y + tgtNode.y) / 2 + 2}
-                  textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="8"
-                  fontWeight="600"
-                >
-                  {edge.label}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Render Nodes */}
-          {nodes.map(node => {
-            const isSelected = node.id === selectedNodeId;
-
-            let bgColor = '#0f172a';
-            let strokeColor = '#334155';
-            let textColor = '#f8fafc';
-
-            if (node.type === 'EMISSION_SCORE') {
-              if (node.severity === 'HIGH') {
-                bgColor = '#450a0a';
-                strokeColor = '#f43f5e';
-                textColor = '#fda4af';
-              } else if (node.severity === 'MEDIUM') {
-                bgColor = '#451a03';
-                strokeColor = '#f59e0b';
-                textColor = '#fcd34d';
-              } else {
-                bgColor = '#064e3b';
-                strokeColor = '#10b981';
-                textColor = '#6ee7b7';
-              }
-            } else if (node.type === 'SUPPLIER') {
-              strokeColor = '#06b6d4';
-            } else if (node.type === 'MATERIAL') {
-              strokeColor = '#10b981';
-            } else if (node.type === 'LOGISTICS') {
-              strokeColor = '#8b5cf6';
-            }
-
-            return (
-              <g
-                key={node.id}
-                transform={`translate(${node.x}, ${node.y})`}
-                onClick={() => setSelectedNodeId(node.id)}
-                className="cursor-pointer group"
-              >
-                {/* Outer halo when selected */}
-                {isSelected && (
-                  <circle
-                    r="28"
-                    fill="none"
-                    stroke={strokeColor}
-                    strokeWidth="2"
-                    className="animate-ping opacity-50"
-                  />
-                )}
-
-                {/* Main Node Circle */}
-                <circle
-                  r="24"
-                  fill={bgColor}
-                  stroke={isSelected ? '#38bdf8' : strokeColor}
-                  strokeWidth={isSelected ? '3' : '2'}
-                  filter={isSelected ? 'url(#glow)' : undefined}
-                  className="transition-all duration-200 group-hover:scale-110"
-                />
-
-                {/* Node Icon */}
-                <g transform="translate(-8, -8)">
-                  {node.type === 'SUPPLIER' && <Factory className="w-4 h-4 text-cyan-400" />}
-                  {node.type === 'MATERIAL' && <Box className="w-4 h-4 text-emerald-400" />}
-                  {node.type === 'LOGISTICS' && <Truck className="w-4 h-4 text-purple-400" />}
-                  {node.type === 'PRODUCT' && <Box className="w-4 h-4 text-slate-300" />}
-                  {node.type === 'EMISSION_SCORE' && (
-                    node.severity === 'HIGH' ? (
-                      <ShieldAlert className="w-4 h-4 text-rose-400" />
-                    ) : (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    )
-                  )}
-                </g>
-
-                {/* Label text below node */}
-                <text
-                  y="38"
-                  textAnchor="middle"
-                  fill={textColor}
-                  fontSize="9"
-                  fontWeight="700"
-                  className="pointer-events-none select-none"
-                >
-                  {node.label.length > 20 ? node.label.substring(0, 18) + '...' : node.label}
-                </text>
-                <text
-                  y="48"
-                  textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="8"
-                  className="pointer-events-none select-none"
-                >
-                  {node.value}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      {/* Selected Node Details Bar */}
-      {activeNode && (
-        <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-emerald-400">
-              <Network className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                Graph Node Selected ({activeNode.type})
+      {/* Symmetrical 4-Stage Horizontal Pipeline Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+        {stages.map((stg) => {
+          const IconComp = stg.icon;
+          const isSelected = selectedStage === stg.id;
+          return (
+            <button
+              key={stg.id}
+              onClick={() => setSelectedStage(stg.id)}
+              className={`text-left p-3 rounded border transition-all flex flex-col justify-between h-28 relative ${
+                isSelected
+                  ? 'bg-zinc-800/90 border-zinc-600 ring-1 ring-zinc-500'
+                  : 'bg-zinc-950/60 border-zinc-800 hover:border-zinc-700'
+              } ${stg.statusColor}`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="font-mono text-[10px] text-zinc-500 font-bold">{stg.stageNum}. {stg.title}</span>
+                <IconComp className="w-3.5 h-3.5 text-zinc-400" />
               </div>
-              <div className="font-semibold text-white text-xs">{activeNode.label}</div>
-              <div className="text-[11px] text-slate-400">{activeNode.subtext}</div>
-            </div>
+
+              <div>
+                <div className="font-sans font-bold text-xs text-zinc-100 truncate mt-1">
+                  {stg.name}
+                </div>
+                <div className="font-mono text-[10px] text-zinc-400 truncate">
+                  {stg.detail}
+                </div>
+              </div>
+
+              <div className="pt-1.5 border-t border-zinc-800/80 font-mono text-[10px] text-zinc-500 flex justify-between">
+                <span>METRIC</span>
+                <span className="text-zinc-300 font-semibold">{stg.metric}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Symmetrical Connector Lines to Centered Outcome Node */}
+      <div className="relative flex flex-col items-center py-1">
+        <div className="w-[1px] h-4 bg-zinc-800"></div>
+
+        {/* Centered Scope 3 Audit Outcome Node */}
+        <button
+          onClick={() => setSelectedStage('outcome')}
+          className={`w-full max-w-md text-center p-3 rounded border transition-all ${
+            selectedStage === 'outcome' ? 'ring-1 ring-zinc-400' : ''
+          } ${
+            isAnomaly
+              ? 'bg-rose-950/30 border-rose-800 text-rose-200'
+              : 'bg-zinc-950 border-zinc-800 text-emerald-300'
+          }`}
+        >
+          <div className="flex items-center justify-between font-mono text-[11px] mb-1">
+            <span className="text-zinc-400 font-bold flex items-center gap-1.5">
+              {isAnomaly ? (
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+              ) : (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              )}
+              STAGE 05: SCOPE 3 CARBON AUDIT OUTCOME
+            </span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+              isAnomaly ? 'bg-rose-900/60 text-rose-300 border border-rose-700' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+            }`}>
+              {severity} SEVERITY
+            </span>
           </div>
-          <div className="text-right">
-            <span className="text-[10px] text-slate-500 block">Attribute Value</span>
-            <span className="font-mono font-bold text-emerald-400 text-xs">{activeNode.value}</span>
+
+          <div className="flex items-center justify-between font-mono text-xs pt-1 border-t border-zinc-800/80">
+            <span className="text-zinc-400">EMISSION_FOOTPRINT:</span>
+            <span className="font-bold text-sm text-zinc-100">{calculation.totalEmissionsTCO2e} tCO2e</span>
+            <span className="text-zinc-500 text-[10px]">THRESHOLD: 10.0 tCO2e</span>
           </div>
+        </button>
+      </div>
+
+      {/* Selected Node Telemetry Strip */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded p-3 text-xs font-mono">
+        <div className="text-[10px] text-zinc-500 font-bold tracking-wider mb-2 uppercase">
+          {selectedData.label}
         </div>
-      )}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {selectedData.data.map((item, idx) => (
+            <div key={idx} className="bg-zinc-900 border border-zinc-800/80 p-2 rounded">
+              <div className="text-[9px] text-zinc-500 uppercase">{item.key}</div>
+              <div className="text-[11px] font-bold text-zinc-200 truncate mt-0.5">{item.val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
     </div>
   );

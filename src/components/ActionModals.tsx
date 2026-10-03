@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check, Send, FileCheck, Mail, Database, Sparkles, CheckCircle2 } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { X, Send, FileCheck, Mail, Database } from 'lucide-react';
 import { ExtractedDocumentData, OptimizationAlternative, ERPActionLog } from '@/types';
 
 interface ActionModalsProps {
@@ -32,25 +31,11 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
 
   const alt = selectedAlternative;
 
-  // Trigger celebration confetti
-  const triggerConfetti = () => {
-    try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    } catch {
-      // Fallback ignore if confetti canvas context fails
-    }
-  };
-
   // RFQ Dispatch Handler
   const handleDispatchRFQ = () => {
     setIsDispatching(true);
     setTimeout(() => {
       setIsDispatching(false);
-      triggerConfetti();
       onAddAuditLog({
         id: `LOG-${Date.now()}`,
         timestamp: new Date().toLocaleTimeString(),
@@ -59,9 +44,9 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
         status: 'DISPATCHED',
         details: `Green RFQ issued for ${extracted.quantity.toLocaleString()} kg of ${alt.materialName} via ${alt.transportMode}. Projected carbon saving: ${alt.carbonReductionPercentage}%.`
       });
-      showToast(`✅ Green RFQ successfully dispatched to ${alt.supplierName}!`);
+      showToast(`[AUDIT_LOG_COMMITTED]: Green RFQ dispatched to ${alt.supplierName}`);
       onClose();
-    }, 1200);
+    }, 800);
   };
 
   // Email Dispatch Handler
@@ -69,7 +54,6 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
     setIsDispatching(true);
     setTimeout(() => {
       setIsDispatching(false);
-      triggerConfetti();
       onAddAuditLog({
         id: `LOG-${Date.now()}`,
         timestamp: new Date().toLocaleTimeString(),
@@ -78,9 +62,9 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
         status: 'DISPATCHED',
         details: `Diplomatic CFP request email dispatched to ${extracted.supplierName}. Requested ISO 14064 certification and price-matching on recycled rPP.`
       });
-      showToast(`✉️ Negotiation email dispatched to ${extracted.supplierName}!`);
+      showToast(`[EMAIL_DISPATCHED]: Negotiation request sent to ${extracted.supplierName}`);
       onClose();
-    }, 1200);
+    }, 800);
   };
 
   // ERP Webhook Dispatch Handler
@@ -88,7 +72,6 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
     setIsDispatching(true);
     setTimeout(() => {
       setIsDispatching(false);
-      triggerConfetti();
       onAddAuditLog({
         id: `LOG-${Date.now()}`,
         timestamp: new Date().toLocaleTimeString(),
@@ -97,36 +80,36 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
         status: 'DISPATCHED',
         details: `SAP S/4HANA Purchase Order PO-99412 updated with low-carbon line item SUP-004. Audit log hash generated.`
       });
-      showToast(`🚀 Webhook successfully synced with SAP / NetSuite ERP!`);
+      showToast(`[SAP_WEBHOOK_ACK 200 OK]: Purchase order PO-99412 synchronized`);
       onClose();
-    }, 1200);
+    }, 800);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-150 font-mono">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-2xl w-full p-5 space-y-4 relative max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg bg-slate-950 text-slate-400 hover:text-white border border-slate-800"
+          className="absolute top-4 right-4 p-1.5 rounded bg-zinc-950 text-zinc-400 hover:text-zinc-100 border border-zinc-800"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center space-x-3 border-b border-slate-800 pb-4">
-          <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400">
-            {modalType === 'RFQ' && <FileCheck className="w-6 h-6" />}
-            {modalType === 'EMAIL' && <Mail className="w-6 h-6" />}
-            {modalType === 'ERP' && <Database className="w-6 h-6" />}
+        <div className="flex items-center space-x-3 border-b border-zinc-800 pb-3">
+          <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800 text-zinc-200">
+            {modalType === 'RFQ' && <FileCheck className="w-5 h-5" />}
+            {modalType === 'EMAIL' && <Mail className="w-5 h-5" />}
+            {modalType === 'ERP' && <Database className="w-5 h-5" />}
           </div>
           <div>
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Pillar 5: Autonomous Action</span>
-            <h2 className="text-lg font-bold text-white">
-              {modalType === 'RFQ' && 'Generate & Dispatch Green RFQ Document'}
-              {modalType === 'EMAIL' && 'Draft Supplier Negotiation Email'}
-              {modalType === 'ERP' && 'Simulate SAP ERP Webhook Integration'}
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">PILLAR 05 // EXECUTIVE CONTROL</span>
+            <h2 className="text-sm font-bold text-zinc-100 uppercase">
+              {modalType === 'RFQ' && 'REQUEST FOR QUOTATION (RFQ) DISPATCH'}
+              {modalType === 'EMAIL' && 'SUPPLIER CFP NEGOTIATION DRAFT'}
+              {modalType === 'ERP' && 'SAP S/4HANA WEBHOOK INTEGRATION'}
             </h2>
           </div>
         </div>
@@ -134,52 +117,49 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
         {/* RFQ MODAL CONTENT */}
         {modalType === 'RFQ' && (
           <div className="space-y-4 text-xs">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 font-mono">
-              <div className="flex justify-between border-b border-slate-800 pb-2 font-sans font-bold text-white text-sm">
-                <span>REQUEST FOR QUOTATION (RFQ) #RFQ-GREEN-2026-09</span>
-                <span className="text-emerald-400">GreenScope AI Concierge</span>
+            <div className="bg-zinc-950 p-3.5 rounded border border-zinc-800 space-y-2 text-[11px]">
+              <div className="flex justify-between border-b border-zinc-800 pb-2 font-bold text-zinc-200">
+                <span>FORMAL RFQ SPECIFICATION #RFQ-2026-GREEN-09</span>
+                <span className="text-zinc-400 font-mono">GREENSCOPE.AI</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-slate-300">
-                <div><strong>Target Supplier:</strong> {alt.supplierName}</div>
-                <div><strong>Material Spec:</strong> {alt.materialName}</div>
-                <div><strong>Required Quantity:</strong> {extracted.quantity.toLocaleString()} kg</div>
-                <div><strong>Logistics Mode:</strong> {alt.transportMode}</div>
-                <div><strong>Target Unit Price:</strong> ${alt.unitCostUSD} / kg</div>
-                <div><strong>Required Certification:</strong> {alt.certifications.join(', ')}</div>
+              <div className="grid grid-cols-2 gap-2 text-zinc-300">
+                <div><span className="text-zinc-500">TARGET_SUPPLIER:</span> {alt.supplierName}</div>
+                <div><span className="text-zinc-500">MATERIAL_SPEC:</span> {alt.materialName}</div>
+                <div><span className="text-zinc-500">REQUIRED_QTY:</span> {extracted.quantity.toLocaleString()} kg</div>
+                <div><span className="text-zinc-500">LOGISTICS_MODE:</span> {alt.transportMode}</div>
+                <div><span className="text-zinc-500">TARGET_UNIT_PRICE:</span> ${alt.unitCostUSD} / kg</div>
+                <div><span className="text-zinc-500">CERTIFICATION:</span> {alt.certifications.join(', ')}</div>
               </div>
             </div>
 
-            <div className="space-y-1.5 font-sans">
-              <label className="font-semibold text-slate-300">Additional Instructions for Supplier:</label>
+            <div className="space-y-1">
+              <label className="font-semibold text-zinc-400 text-[10px] uppercase">OPERATIONAL INSTRUCTIONS / REMARKS:</label>
               <textarea
                 value={rfqNote}
                 onChange={(e) => setRfqNote(e.target.value)}
-                rows={3}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-emerald-500 focus:outline-none text-xs"
+                rows={2}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded p-2.5 text-zinc-100 focus:border-zinc-500 focus:outline-none text-xs font-mono"
               />
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800 font-sans">
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-zinc-800 text-xs">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 font-semibold"
+                className="px-3.5 py-1.5 rounded bg-zinc-950 text-zinc-400 border border-zinc-800 font-semibold hover:text-zinc-200"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleDispatchRFQ}
                 disabled={isDispatching}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold flex items-center space-x-2 shadow-lg shadow-emerald-950"
+                className="px-4 py-1.5 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold flex items-center space-x-2 transition-all"
               >
                 {isDispatching ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Dispatching RFQ...</span>
-                  </>
+                  <span>[DISPATCHING...]</span>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    <span>Approve & Dispatch RFQ</span>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>APPROVE & DISPATCH RFQ</span>
                   </>
                 )}
               </button>
@@ -189,54 +169,50 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
 
         {/* EMAIL MODAL CONTENT */}
         {modalType === 'EMAIL' && (
-          <div className="space-y-4 text-xs">
-            <div className="space-y-1.5 font-sans">
-              <label className="font-semibold text-slate-300">Subject:</label>
+          <div className="space-y-3 text-xs">
+            <div className="space-y-1">
+              <label className="font-semibold text-zinc-400 text-[10px] uppercase">SUBJECT LINE:</label>
               <input
                 type="text"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-medium text-xs focus:border-emerald-500 focus:outline-none"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-zinc-100 text-xs focus:border-zinc-500 focus:outline-none font-mono"
               />
             </div>
 
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono space-y-3 leading-relaxed text-slate-300">
+            <div className="bg-zinc-950 p-3.5 rounded border border-zinc-800 space-y-2.5 text-zinc-300 text-[11px] leading-relaxed">
               <p>Dear Procurement Team at {extracted.supplierName},</p>
               <p>
                 In alignment with GreenScope Corp's 2026 Scope 3 Decarbonization Targets, we recently audited invoice {extracted.documentId} for {extracted.quantity.toLocaleString()} kg of {extracted.materialName}.
               </p>
               <p>
-                Our AI Carbon Concierge identified a Scope 3 footprint spike of <strong>{extracted.totalCostUSD} USD / high tCO2e intensity</strong>. To maintain our Tier-1 preferred vendor status, we kindly request:
+                Our AI Carbon Concierge identified a Scope 3 footprint spike of <strong>{extracted.totalCostUSD} USD / high tCO2e intensity</strong>. To maintain Tier-1 status, we request:
               </p>
-              <ol className="list-decimal list-inside space-y-1 pl-2 text-emerald-300">
-                <li>An updated Product Carbon Footprint (PCF) ISO 14067 certificate.</li>
+              <ol className="list-decimal list-inside space-y-1 pl-2 text-zinc-200">
+                <li>Updated Product Carbon Footprint (PCF) ISO 14067 certificate.</li>
                 <li>Option to transition line items to Recycled PP (rPP) resin or offer price parity.</li>
               </ol>
-              <p>We value our partnership and look forward to your response within 5 business days.</p>
               <p>Best regards,<br />GreenScope Autonomous Procurement Concierge</p>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800 font-sans">
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-zinc-800 text-xs">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 font-semibold"
+                className="px-3.5 py-1.5 rounded bg-zinc-950 text-zinc-400 border border-zinc-800 font-semibold hover:text-zinc-200"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleDispatchEmail}
                 disabled={isDispatching}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold flex items-center space-x-2 shadow-lg shadow-emerald-950"
+                className="px-4 py-1.5 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold flex items-center space-x-2 transition-all"
               >
                 {isDispatching ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Sending Draft...</span>
-                  </>
+                  <span>[SENDING_EMAIL...]</span>
                 ) : (
                   <>
-                    <Mail className="w-4 h-4" />
-                    <span>Approve & Dispatch Email</span>
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>APPROVE & DISPATCH EMAIL</span>
                   </>
                 )}
               </button>
@@ -246,10 +222,10 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
 
         {/* ERP MODAL CONTENT */}
         {modalType === 'ERP' && (
-          <div className="space-y-4 text-xs">
-            <div className="space-y-2">
-              <span className="font-semibold text-slate-300">SAP S/4HANA / NetSuite Webhook Payload Preview:</span>
-              <pre className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-emerald-400 font-mono overflow-x-auto text-[11px] leading-relaxed">
+          <div className="space-y-3 text-xs">
+            <div className="space-y-1">
+              <span className="font-semibold text-zinc-400 text-[10px] uppercase">SAP S/4HANA WEBHOOK PAYLOAD [POST /api/v1/erp/procurement/orders]:</span>
+              <pre className="bg-zinc-950 p-3 rounded border border-zinc-800 text-zinc-300 font-mono overflow-x-auto text-[10px] leading-relaxed">
 {JSON.stringify(
   {
     event: "PURCHASE_ORDER.SCOPE3_OPTIMIZED",
@@ -269,31 +245,31 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
             </div>
 
             {/* Audit Log Trail Table */}
-            <div className="space-y-2">
-              <span className="font-semibold text-slate-300">Recent Dispatch Audit Trail:</span>
-              <div className="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden max-h-36 overflow-y-auto">
-                <table className="w-full text-left text-[11px]">
-                  <thead className="bg-slate-900 border-b border-slate-800 text-slate-400">
+            <div className="space-y-1">
+              <span className="font-semibold text-zinc-400 text-[10px] uppercase">AUDIT LOG TRAIL:</span>
+              <div className="bg-zinc-950 border border-zinc-800 rounded overflow-hidden max-h-32 overflow-y-auto">
+                <table className="w-full text-left text-[10px]">
+                  <thead className="bg-zinc-900 border-b border-zinc-800 text-zinc-400">
                     <tr>
-                      <th className="p-2">Time</th>
-                      <th className="p-2">Action</th>
-                      <th className="p-2">Target</th>
-                      <th className="p-2">Status</th>
+                      <th className="p-1.5">TIMESTAMP</th>
+                      <th className="p-1.5">ACTION</th>
+                      <th className="p-1.5">TARGET</th>
+                      <th className="p-1.5">STATUS</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  <tbody className="divide-y divide-zinc-800/80 text-zinc-300">
                     {auditLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-3 text-center text-slate-500">No actions dispatched yet.</td>
+                        <td colSpan={4} className="p-2 text-center text-zinc-500">No actions recorded in audit log.</td>
                       </tr>
                     ) : (
                       auditLogs.map((log) => (
                         <tr key={log.id}>
-                          <td className="p-2 font-mono text-slate-500">{log.timestamp}</td>
-                          <td className="p-2 font-bold text-emerald-400">{log.actionType}</td>
-                          <td className="p-2">{log.targetSupplier}</td>
-                          <td className="p-2">
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-semibold text-[10px]">
+                          <td className="p-1.5 font-mono text-zinc-500">{log.timestamp}</td>
+                          <td className="p-1.5 font-bold text-zinc-200">{log.actionType}</td>
+                          <td className="p-1.5">{log.targetSupplier}</td>
+                          <td className="p-1.5">
+                            <span className="px-1 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-semibold text-[9px]">
                               {log.status}
                             </span>
                           </td>
@@ -305,27 +281,24 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800 font-sans">
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-zinc-800 text-xs">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 font-semibold"
+                className="px-3.5 py-1.5 rounded bg-zinc-950 text-zinc-400 border border-zinc-800 font-semibold hover:text-zinc-200"
               >
-                Close
+                CLOSE
               </button>
               <button
                 onClick={handleDispatchERP}
                 disabled={isDispatching}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold flex items-center space-x-2 shadow-lg shadow-purple-950"
+                className="px-4 py-1.5 rounded bg-zinc-100 hover:bg-white text-zinc-950 font-bold flex items-center space-x-2 transition-all"
               >
                 {isDispatching ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Triggering Webhook...</span>
-                  </>
+                  <span>[SYNCING_ERP...]</span>
                 ) : (
                   <>
-                    <Database className="w-4 h-4" />
-                    <span>Trigger ERP Webhook Sync</span>
+                    <Database className="w-3.5 h-3.5" />
+                    <span>SYNC ERP WEBHOOK</span>
                   </>
                 )}
               </button>

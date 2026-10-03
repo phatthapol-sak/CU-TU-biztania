@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BarChart2, TrendingDown, BookOpen, Layers, Check } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { BarChart2, Check, BookOpen } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { CarbonCalculation, ExtractedDocumentData, OptimizationAlternative } from '@/types';
 
 interface AnalyticsPanelProps {
@@ -29,55 +29,53 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
   // Recharts scenario data
   const chartData = [
     {
-      name: 'Current Baseline',
+      name: 'Baseline Scenario',
       Emissions_tCO2e: calculation.totalEmissionsTCO2e,
       Cost_USD: extracted.totalCostUSD,
-      UnitCost: extracted.unitCostUSD
     },
     {
-      name: activeAlt ? `Green Alt: ${activeAlt.supplierName.split(' ')[0]}` : 'Green Alternative',
+      name: activeAlt ? activeAlt.supplierName.split(' ')[0] : 'Green Scenario',
       Emissions_tCO2e: activeAlt ? activeAlt.estimatedEmissionsTCO2e : 6.42,
       Cost_USD: activeAlt ? activeAlt.totalCostUSD : 18320,
-      UnitCost: activeAlt ? activeAlt.unitCostUSD : 2.29
     }
   ];
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col space-y-4">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col space-y-4">
       
       {/* Panel Header */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center space-x-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-bold">
-            3 & 4
+          <span className="flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-zinc-300 font-mono text-[11px] font-bold">
+            03
           </span>
-          <h2 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-1.5">
-            <BarChart2 className="w-4 h-4 text-emerald-400" />
-            Pillar 3 & 4: GHG Analytics & Optimization Scenarios
+          <h2 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+            <BarChart2 className="w-3.5 h-3.5 text-zinc-400" />
+            GHG Analytics & Scenario Simulation
           </h2>
         </div>
 
-        {/* Tab switchers */}
-        <div className="flex items-center space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+        {/* Tab Switcher */}
+        <div className="flex items-center space-x-1 bg-zinc-950 p-1 rounded border border-zinc-800 font-mono text-[11px]">
           <button
             onClick={() => setActiveTab('comparison')}
-            className={`px-3 py-1 rounded-md font-medium transition-all ${
+            className={`px-2.5 py-0.5 rounded transition-all ${
               activeTab === 'comparison'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-zinc-800 text-zinc-100 font-medium'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            Scenario Simulation
+            Scenario Matrix
           </button>
           <button
             onClick={() => setActiveTab('emissionFactors')}
-            className={`px-3 py-1 rounded-md font-medium transition-all ${
+            className={`px-2.5 py-0.5 rounded transition-all ${
               activeTab === 'emissionFactors'
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-zinc-800 text-zinc-100 font-medium'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            EF Audit Database
+            EF Audit Table
           </button>
         </div>
       </div>
@@ -85,46 +83,45 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
       {activeTab === 'comparison' ? (
         <div className="space-y-4">
           
-          {/* Alternative Scenario Selector Cards */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-              <span>Multi-Objective Green Procurement Options</span>
-              <span className="text-[10px] text-teal-400 font-semibold">Select to compare</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Symmetrical 2-Column Alternative Selector */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between font-mono text-[10px] text-zinc-400 font-semibold uppercase">
+              <span>MULTI-OBJECTIVE PROCUREMENT ALTERNATIVES</span>
+              <span>SELECT TO SIMULATE</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {alternatives.map((alt) => {
                 const isSelected = alt.id === selectedAltId;
                 return (
                   <button
                     key={alt.id}
                     onClick={() => onSelectAlternative(alt.id)}
-                    className={`text-left p-3 rounded-xl border transition-all text-xs flex flex-col justify-between ${
+                    className={`text-left p-3 rounded border transition-all text-xs flex flex-col justify-between font-mono ${
                       isSelected
-                        ? 'bg-teal-950/40 border-teal-500/80 ring-1 ring-teal-500/50 shadow-md shadow-teal-950/50'
-                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                        ? 'bg-zinc-800 border-zinc-600 ring-1 ring-zinc-500'
+                        : 'bg-zinc-950/60 border-zinc-800 hover:border-zinc-700'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full mb-1">
-                      <span className="font-bold text-white text-[11px] truncate">{alt.supplierName}</span>
+                      <span className="font-bold text-zinc-100 text-[11px] truncate">{alt.supplierName}</span>
                       {isSelected ? (
-                        <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Selected
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 text-[9px] font-bold flex items-center gap-0.5">
+                          <Check className="w-3 h-3" /> SELECTED
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-400 font-semibold">{alt.recommendationScore}% Match</span>
+                        <span className="text-[10px] text-zinc-500">{alt.recommendationScore}% MATCH</span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate mb-2">{alt.materialName}</div>
+                    <div className="text-[10px] text-zinc-400 truncate mb-2">{alt.materialName}</div>
 
-                    {/* Key Tradeoff Chips */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
-                      <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] flex items-center gap-1">
-                        <TrendingDown className="w-3 h-3" /> -{alt.carbonReductionPercentage}% tCO2e
+                    <div className="flex items-center justify-between gap-1 pt-2 border-t border-zinc-800/80 text-[10px]">
+                      <span className="text-emerald-400 font-bold">
+                        -{alt.carbonReductionPercentage}% tCO2e
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-medium text-[10px]">
+                      <span className="text-zinc-400">
                         +{alt.costDiffPercentage}% USD
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-purple-950/60 border border-purple-800 text-purple-300 text-[10px]">
+                      <span className="text-zinc-500">
                         {alt.transportMode.split(' ')[0]}
                       </span>
                     </div>
@@ -134,35 +131,35 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
             </div>
           </div>
 
-          {/* Recharts Bar Chart */}
-          <div className="bg-slate-950/90 border border-slate-800/80 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wide">
-                Emissions & Cost Simulation (Baseline vs Green Scenario)
+          {/* Recharts Bar Chart Container */}
+          <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
+            <div className="flex items-center justify-between mb-3 font-mono text-[10px]">
+              <span className="font-bold text-zinc-400 uppercase">
+                EMISSIONS (tCO2e) & COST ($ USD) COMPARISON
               </span>
-              <div className="flex items-center space-x-3 text-[11px]">
-                <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                  <span className="w-2.5 h-2.5 rounded bg-emerald-500"></span> Carbon Footprint (tCO2e)
+              <div className="flex items-center space-x-3 text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-emerald-500"></span> Emissions (tCO2e)
                 </span>
-                <span className="flex items-center gap-1 text-cyan-400 font-medium">
-                  <span className="w-2.5 h-2.5 rounded bg-cyan-500"></span> Total Spend ($ USD)
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-zinc-400"></span> Total Cost ($)
                 </span>
               </div>
             </div>
 
-            <div className="h-48 w-full">
+            <div className="h-44 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                  <YAxis yAxisId="left" stroke="#10b981" fontSize={11} domain={[0, 'auto']} />
-                  <YAxis yAxisId="right" orientation="right" stroke="#06b6d4" fontSize={11} domain={[0, 'auto']} />
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="2 2" stroke="#27272a" vertical={false} />
+                  <XAxis dataKey="name" stroke="#71717a" fontSize={10} fontFamily="monospace" />
+                  <YAxis yAxisId="left" stroke="#10b981" fontSize={10} fontFamily="monospace" domain={[0, 'auto']} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#a1a1aa" fontSize={10} fontFamily="monospace" domain={[0, 'auto']} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
-                    labelStyle={{ color: '#f8fafc', fontWeight: 'bold' }}
+                    contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '2px', fontSize: '11px', fontFamily: 'monospace' }}
+                    labelStyle={{ color: '#f4f4f5', fontWeight: 'bold' }}
                   />
-                  <Bar yAxisId="left" dataKey="Emissions_tCO2e" name="Emissions (tCO2e)" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="right" dataKey="Cost_USD" name="Cost ($ USD)" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="Emissions_tCO2e" name="Emissions (tCO2e)" fill="#10b981" radius={[0, 0, 0, 0]} barSize={28} />
+                  <Bar yAxisId="right" dataKey="Cost_USD" name="Cost ($ USD)" fill="#71717a" radius={[0, 0, 0, 0]} barSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -170,31 +167,31 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
 
         </div>
       ) : (
-        /* Emission Factors Audit Table */
-        <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+        /* Emission Factors Data Table */
+        <div className="bg-zinc-950 border border-zinc-800 rounded p-3 space-y-3 font-mono">
+          <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300 border-b border-zinc-800 pb-2">
             <span className="flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-emerald-400" />
-              GHG Protocol DEFRA / TGO Reference Standards
+              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+              GHG PROTOCOL DEFRA / TGO REFERENCE AUDIT TABLE
             </span>
           </div>
 
-          <div className="space-y-2 text-xs">
-            <div className="p-3 bg-slate-900/90 rounded-lg border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 font-bold uppercase">Matched Material Emission Factor</div>
-              <div className="font-semibold text-emerald-300">{calculation.matchedMaterialEF.name}</div>
-              <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60">
-                <span className="text-slate-400">Factor: <strong className="text-white">{calculation.matchedMaterialEF.factorKgCO2ePerUnit} {calculation.matchedMaterialEF.unit}</strong></span>
-                <span className="text-slate-500">Source: {calculation.matchedMaterialEF.source}</span>
+          <div className="space-y-2 text-[11px]">
+            <div className="p-2.5 bg-zinc-900 rounded border border-zinc-800 space-y-1">
+              <div className="text-[9px] text-zinc-500 font-bold uppercase">MATCHED MATERIAL EMISSION FACTOR</div>
+              <div className="font-semibold text-zinc-200">{calculation.matchedMaterialEF.name}</div>
+              <div className="flex items-center justify-between text-[10px] pt-1 border-t border-zinc-800/80">
+                <span className="text-zinc-400">FACTOR: <strong className="text-emerald-400 font-bold">{calculation.matchedMaterialEF.factorKgCO2ePerUnit} {calculation.matchedMaterialEF.unit}</strong></span>
+                <span className="text-zinc-500">SOURCE: {calculation.matchedMaterialEF.source}</span>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-900/90 rounded-lg border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 font-bold uppercase">Matched Transport Emission Factor</div>
-              <div className="font-semibold text-cyan-300">{calculation.matchedTransportEF.name}</div>
-              <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60">
-                <span className="text-slate-400">Factor: <strong className="text-white">{calculation.matchedTransportEF.factorKgCO2ePerUnit} {calculation.matchedTransportEF.unit}</strong></span>
-                <span className="text-slate-500">Source: {calculation.matchedTransportEF.source}</span>
+            <div className="p-2.5 bg-zinc-900 rounded border border-zinc-800 space-y-1">
+              <div className="text-[9px] text-zinc-500 font-bold uppercase">MATCHED TRANSPORT EMISSION FACTOR</div>
+              <div className="font-semibold text-zinc-200">{calculation.matchedTransportEF.name}</div>
+              <div className="flex items-center justify-between text-[10px] pt-1 border-t border-zinc-800/80">
+                <span className="text-zinc-400">FACTOR: <strong className="text-emerald-400 font-bold">{calculation.matchedTransportEF.factorKgCO2ePerUnit} {calculation.matchedTransportEF.unit}</strong></span>
+                <span className="text-zinc-500">SOURCE: {calculation.matchedTransportEF.source}</span>
               </div>
             </div>
           </div>

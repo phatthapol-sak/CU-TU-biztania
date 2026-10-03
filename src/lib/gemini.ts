@@ -55,32 +55,47 @@ Return ONLY valid JSON.`;
         ? fileBase64.split(',')[1] 
         : fileBase64;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                inlineData: {
-                  data: cleanBase64,
-                  mimeType
-                }
-              },
-              { text: prompt }
-            ]
-          }
-        ]
-      });
+      const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
+      let responseText = '';
 
-      const text = response.text || '';
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          extracted: parsed as ExtractedDocumentData,
-          source: 'Gemini Vision AI'
-        };
+      for (const modelName of candidateModels) {
+        try {
+          const res = await ai.models.generateContent({
+            model: modelName,
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    inlineData: {
+                      data: cleanBase64,
+                      mimeType
+                    }
+                  },
+                  { text: prompt }
+                ]
+              }
+            ]
+          });
+
+          if (res && res.text) {
+            responseText = res.text;
+            break;
+          }
+        } catch {
+          // continue to next model candidate
+        }
+      }
+
+      if (responseText) {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return {
+            extracted: parsed as ExtractedDocumentData,
+            source: 'Gemini Vision AI'
+          };
+        }
       }
     } catch (err) {
       console.warn('Gemini Vision extraction fell back to local schema parser:', err);

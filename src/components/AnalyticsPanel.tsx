@@ -46,7 +46,7 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
       {/* Panel Header */}
       <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center space-x-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-zinc-300 font-mono text-[11px] font-bold">
+          <span className="flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded bg-zinc-800 text-zinc-300 font-mono text-[10px] font-bold whitespace-nowrap">
             03
           </span>
           <h2 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">

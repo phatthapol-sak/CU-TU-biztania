@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Papa from 'papaparse';
 import { Header, DashboardTab } from '@/components/Header';
 import { LeftPanel } from '@/components/LeftPanel';
@@ -8,18 +8,33 @@ import { KnowledgeGraph } from '@/components/KnowledgeGraph';
 import { AnalyticsPanel } from '@/components/AnalyticsPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ActionModals } from '@/components/ActionModals';
+import { DocumentSwitcher } from '@/components/DocumentSwitcher';
 import { ExtractedDocumentData, CarbonCalculation, OptimizationAlternative, ActivityLogItem, ERPActionLog } from '@/types';
 import { MOCK_DOCUMENT_PRESETS } from '@/data/mockDocuments';
 import { calculateScope3Emissions, generateGreenAlternatives } from '@/lib/calculator';
 
-// ใช้ Direct Export URL จาก Sheet ID ของคุณ เพื่อให้ดึงข้อมูลสดทันที ไม่ติด Google CDN Cache
-const SHEET_ID = "17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4";
-const GOOGLE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || "17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('ingestion');
+
+  // Registered Document List & Active Document Context
+  const [documentList, setDocumentList] = useState<ExtractedDocumentData[]>(
+    MOCK_DOCUMENT_PRESETS.map(p => p.extracted)
+  );
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>(
+    MOCK_DOCUMENT_PRESETS[0].extracted.documentId
+  );
   const [activePresetId, setActivePresetId] = useState<string>('doc-preset-1');
-  const [currentExtracted, setCurrentExtracted] = useState<ExtractedDocumentData | null>(null);
+
+  // Staged Upload & Human-in-the-Loop Commit State
+  const [stagedExtracted, setStagedExtracted] = useState<ExtractedDocumentData | null>(
+    MOCK_DOCUMENT_PRESETS[0].extracted
+  );
+  const [isCommitted, setIsCommitted] = useState<boolean>(true);
+  const [isCommitting, setIsCommitting] = useState<boolean>(false);
+
+  // Active Committed Calculation & Alternatives
   const [calculation, setCalculation] = useState<CarbonCalculation | null>(null);
   const [alternatives, setAlternatives] = useState<OptimizationAlternative[]>([]);
   const [selectedAltId, setSelectedAltId] = useState<string>('alt-opt-1');
@@ -45,7 +60,7 @@ export default function Home() {
   };
 
   // Helper to add activity log entry
-  const addLog = (pillar: ActivityLogItem['pillar'], message: string, status: ActivityLogItem['status'] = 'info') => {
+  const addLog = useCallback((pillar: ActivityLogItem['pillar'], message: string, status: ActivityLogItem['status'] = 'info') => {
     const newEntry: ActivityLogItem = {
       id: `log-${Date.now()}-${Math.random()}`,
       timestamp: new Date().toLocaleTimeString(),
@@ -54,14 +69,16 @@ export default function Home() {
       status
     };
     setActivityLogs(prev => [newEntry, ...prev]);
-  };
+  }, []);
 
-  // ดึงข้อมูลสดจาก Google Sheet มาแปลงเป็นทางเลือก (Alternatives)
-  const fetchGoogleSheetData = async (baseExtracted: ExtractedDocumentData, calc: CarbonCalculation) => {
+  // Active document currently committed to views
+  const currentCommittedDoc = documentList.find(d => d.documentId === selectedDocumentId) || documentList[0] || stagedExtracted;
+
+  // ดึงข้อมูลสดจาก Google Sheet มาแปลงเป็นทางเลือก (Alternatives) สำหรับเอกสารที่เลือก
+  const fetchGoogleSheetData = useCallback(async (baseExtracted: ExtractedDocumentData, calc: CarbonCalculation) => {
     try {
       addLog('Retrieve', 'Connecting to Google Sheets ERP Database (Direct Export)...', 'info');
       
-      // เรียกผ่าน Server Proxy /api/sheets เพื่อป้องกันปัญหา Browser CORS
       const res = await fetch(`/api/sheets?t=${Date.now()}`, { 
         cache: 'no-store',
         headers: {
@@ -81,33 +98,28 @@ export default function Home() {
             setIsSheetConnected(true);
             addLog('Retrieve', `Synced ${rows.length} records directly from Google Sheets`, 'success');
 
-            // 1. ดึงค่าฐานจาก Plan A ใน Google Sheet (ถ้ามีระบุไว้)
             const planARow = rows.find((r: any) => r.plan_type === 'Plan A' || r.material_id === 'MAT-001');
             const sheetBasePrice = planARow ? Number(planARow.price_per_kg) : null;
             const sheetBaseEF = planARow ? Number(planARow.emission_factor) : null;
 
-            // ค่าฐานสำหรับคำนวณ (ใช้จาก Sheet ก่อน ถ้าไม่มีให้ fallback ไปที่เอกสาร)
             const basePrice = sheetBasePrice || baseExtracted.unitCostUSD || 50;
             const baseEF = sheetBaseEF || calc.matchedMaterialEF?.factorKgCO2ePerUnit || 1.63;
             const qty = baseExtracted.quantity || 2000;
             const distanceKm = baseExtracted.distanceKm || 120;
 
-            // 2. แปลง Plan อื่นๆ (Plan B, C ฯลฯ) ให้เป็นการ์ดทางเลือกตาม Interface OptimizationAlternative
             const dynamicOpts: OptimizationAlternative[] = rows
-              .filter((r: any) => r.plan_type !== 'Plan A')
+              .filter((r: any) => r.plan_type === 'Plan B' || r.plan_type === 'Plan C')
               .map((r: any, idx: number) => {
                 const altEF = Number(r.emission_factor) || 0.5;
                 const altPrice = Number(r.price_per_kg) || 58;
                 const leadTimeDays = Number(r.lead_time_days) || 3;
 
-                // คำนวณ % การลดคาร์บอนและ % ราคาเทียบกับ Plan A
                 const reduction = Math.max(0, Math.round(((baseEF - altEF) / baseEF) * 100));
                 const costIncrease = Math.round(((altPrice - basePrice) / basePrice) * 100);
 
                 const totalCost = qty * altPrice;
-                // คำนวณคาร์บอน (วัสดุ + การขนส่ง)
                 const isEco = r.plan_type === 'Plan B' || reduction >= 60;
-                const trnFactor = isEco ? 0.028 : 0.096; // Electric Rail vs Road Freight
+                const trnFactor = isEco ? 0.028 : 0.096;
                 const transportTon = (qty / 1000) * distanceKm * trnFactor / 1000;
                 const materialTon = (qty * altEF) / 1000;
                 const totalCarbonTon = Number((materialTon + transportTon).toFixed(2));
@@ -147,7 +159,6 @@ export default function Home() {
             setAlternatives(dynamicOpts);
             if (dynamicOpts.length > 0) setSelectedAltId(dynamicOpts[0].id);
             addLog('Reason', `Optimizer loaded ${dynamicOpts.length} low-carbon scenarios from Google Sheet`, 'info');
-            showToast('⚡ Live ERP Database Synchronized with Google Sheet');
           }
         },
       });
@@ -157,55 +168,166 @@ export default function Home() {
       setAlternatives(opts);
       if (opts.length > 0) setSelectedAltId(opts[0].id);
     }
+  }, [addLog]);
+
+  // Switch Active Document Context (Tab 2 or Tab 3 Document Switcher)
+  const handleSwitchDocument = (docId: string) => {
+    setSelectedDocumentId(docId);
+    const targetDoc = documentList.find(d => d.documentId === docId);
+    if (targetDoc) {
+      setStagedExtracted(targetDoc);
+      setIsCommitted(true);
+
+      const calc = calculateScope3Emissions(targetDoc);
+      setCalculation(calc);
+
+      if (targetDoc.materialCategory === 'Plastics & Polymers' || targetDoc.materialName.toLowerCase().includes('pp') || targetDoc.materialName.toLowerCase().includes('poly')) {
+        fetchGoogleSheetData(targetDoc, calc);
+      } else {
+        setIsSheetConnected(false);
+        const opts = generateGreenAlternatives(targetDoc, calc);
+        setAlternatives(opts);
+        if (opts.length > 0) setSelectedAltId(opts[0].id);
+      }
+
+      addLog('Remember', `Switched active document context to PO: ${targetDoc.poNumber || targetDoc.documentId} (${targetDoc.supplierName})`, 'info');
+    }
   };
 
-  // Process Document (Preset or Upload)
-  const processDocumentData = (extractedData: ExtractedDocumentData, source: 'Gemini Vision AI' | 'Preset Mock Engine') => {
+  // Stage 1: Ingest document for review in Tab 1 without committing yet
+  const processStagedDocument = (extractedData: ExtractedDocumentData, source: 'Gemini Vision AI' | 'Preset Mock Engine') => {
     setIsProcessing(true);
     setExtractionSource(source);
 
-    addLog('Understand', `Ingested ${extractedData.documentType} (${extractedData.fileName})`, 'info');
+    addLog('Understand', `Ingested ${extractedData.documentType} (${extractedData.fileName}) [STAGED FOR REVIEW]`, 'info');
     
-    setTimeout(async () => {
-      setCurrentExtracted(extractedData);
-      addLog('Understand', `Schema parsed: Supplier=${extractedData.supplierName}, Qty=${extractedData.quantity}kg`, 'success');
-      addLog('Remember', `Connected nodes: [${extractedData.supplierName}] -> [${extractedData.materialName}]`, 'info');
-
-      const calc = calculateScope3Emissions(extractedData);
-      setCalculation(calc);
-      addLog('Retrieve', `Matched EF: Material=${calc.matchedMaterialEF.factorKgCO2ePerUnit} kgCO2e/kg`, 'info');
-
-      // ดึงทางเลือกจาก Google Sheet สดๆ (สำหรับกลุ่มเม็ดพลาสติก PP) หรือสร้างตามหมวดหมู่เอกสาร
-      if (extractedData.materialCategory === 'Plastics & Polymers' || extractedData.materialName.toLowerCase().includes('pp') || extractedData.materialName.toLowerCase().includes('poly')) {
-        await fetchGoogleSheetData(extractedData, calc);
-      } else {
-        setIsSheetConnected(false);
-        const opts = generateGreenAlternatives(extractedData, calc);
-        setAlternatives(opts);
-        if (opts.length > 0) setSelectedAltId(opts[0].id);
-        addLog('Reason', `Generated ${opts.length} low-carbon packaging alternatives from green catalog`, 'info');
-      }
-
-      if (calc.baselineComparison.isAnomaly) {
-        addLog('Reason', `Carbon Anomaly Flagged: ${calc.totalEmissionsTCO2e} tCO2e (Exceeds sustainable target ${calc.baselineComparison.baselineTCO2e} tCO2e by +${calc.baselineComparison.diffPercentage}%)`, 'warning');
-      } else {
-        addLog('Reason', `Carbon Footprint Nominal: ${calc.totalEmissionsTCO2e} tCO2e within expected parameters`, 'success');
-      }
-
+    setTimeout(() => {
+      setStagedExtracted(extractedData);
+      setIsCommitted(false);
+      addLog('Understand', `Staged document schema parsed: Supplier=${extractedData.supplierName}, Qty=${extractedData.quantity}kg`, 'success');
       setIsProcessing(false);
-    }, 500);
+    }, 400);
+  };
+
+  // Clear / Reset Ingested Rows handler
+  const handleClearIngestedRows = async () => {
+    setIsCommitting(true);
+    addLog('Act', 'Clearing extra ingested rows in Google Sheet ERP Database...', 'info');
+
+    try {
+      await fetch('/api/sheets/clear', { method: 'POST' });
+      setDocumentList(MOCK_DOCUMENT_PRESETS.map(p => p.extracted));
+      const defaultDoc = MOCK_DOCUMENT_PRESETS[0].extracted;
+      setSelectedDocumentId(defaultDoc.documentId);
+      setStagedExtracted(defaultDoc);
+      setIsCommitted(true);
+
+      const calc = calculateScope3Emissions(defaultDoc);
+      setCalculation(calc);
+      await fetchGoogleSheetData(defaultDoc, calc);
+
+      showToast('Reset completed: Ingested rows cleared');
+      addLog('Act', 'Ingested rows cleared. Reset to baseline ERP dataset', 'success');
+    } catch {
+      addLog('Act', 'Failed to clear ingested rows', 'warning');
+    } finally {
+      setIsCommitting(false);
+    }
+  };
+
+  // Stage 2: Append & Commit to Google Sheet Database API POST (Called ONLY on explicit user click)
+  const commitDocumentToGoogleSheet = async (targetExtracted?: ExtractedDocumentData) => {
+    const docToCommit = targetExtracted || stagedExtracted;
+    if (!docToCommit) return;
+
+    if (isCommitted && documentList.some(d => d.documentId === docToCommit.documentId)) {
+      showToast(`Document ${docToCommit.documentId} is already committed to Google Sheet`);
+      return;
+    }
+
+    setIsCommitting(true);
+    addLog('Act', `Appending document ${docToCommit.documentId} to Google Sheet ERP Database...`, 'info');
+
+    try {
+      const res = await fetch('/api/sheets/append', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(docToCommit)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // 1. Add new document to registered documentList if not present
+        setDocumentList(prev => {
+          const exists = prev.some(d => d.documentId === docToCommit.documentId);
+          return exists ? prev : [docToCommit, ...prev];
+        });
+
+        setSelectedDocumentId(docToCommit.documentId);
+        setStagedExtracted(docToCommit);
+        setIsCommitted(true);
+
+        // 2. Calculate Scope 3 emissions for committed document
+        const calc = calculateScope3Emissions(docToCommit);
+        setCalculation(calc);
+
+        // 3. Re-sync alternatives and update global states
+        if (docToCommit.materialCategory === 'Plastics & Polymers' || docToCommit.materialName.toLowerCase().includes('pp') || docToCommit.materialName.toLowerCase().includes('poly')) {
+          await fetchGoogleSheetData(docToCommit, calc);
+        } else {
+          setIsSheetConnected(false);
+          const opts = generateGreenAlternatives(docToCommit, calc);
+          setAlternatives(opts);
+          if (opts.length > 0) setSelectedAltId(opts[0].id);
+        }
+
+        // 4. Add to audit trail
+        setAuditLogs(prev => [
+          {
+            id: data.transactionId,
+            timestamp: new Date().toLocaleTimeString(),
+            actionType: 'ERP_WEBHOOK',
+            targetSupplier: docToCommit.supplierName,
+            status: 'APPROVED',
+            details: `Appended document ${docToCommit.documentId} (${docToCommit.materialName}) to Google Sheet ERP database.`
+          },
+          ...prev
+        ]);
+
+        addLog('Remember', `Connected nodes: [${docToCommit.supplierName}] -> [${docToCommit.materialName}] in Knowledge Graph`, 'info');
+        addLog('Retrieve', `Matched EF: Material=${calc.matchedMaterialEF.factorKgCO2ePerUnit} kgCO2e/kg`, 'info');
+
+        if (calc.baselineComparison.isAnomaly) {
+          addLog('Reason', `Carbon Anomaly Flagged: ${calc.totalEmissionsTCO2e} tCO2e (Exceeds sustainable target ${calc.baselineComparison.baselineTCO2e} tCO2e by +${calc.baselineComparison.diffPercentage}%)`, 'warning');
+        } else {
+          addLog('Reason', `Carbon Footprint Nominal: ${calc.totalEmissionsTCO2e} tCO2e within expected parameters`, 'success');
+        }
+
+        addLog('Act', `[DATABASE_UPDATED]: Document ${docToCommit.documentId} appended to Google Sheet ERP. Baseline updated to ${calc.totalEmissionsTCO2e} tCO2e`, 'success');
+        showToast(`[DATABASE_UPDATED]: Document appended to Google Sheet ERP (${docToCommit.documentId})`);
+      }
+    } catch {
+      addLog('Act', `Failed to append ${docToCommit.documentId} to Google Sheet ERP Database`, 'warning');
+    } finally {
+      setIsCommitting(false);
+    }
   };
 
   useEffect(() => {
-    const defaultPreset = MOCK_DOCUMENT_PRESETS[0];
-    processDocumentData(defaultPreset.extracted, 'Preset Mock Engine');
+    const defaultDoc = MOCK_DOCUMENT_PRESETS[0].extracted;
+    setStagedExtracted(defaultDoc);
+    setSelectedDocumentId(defaultDoc.documentId);
+    setIsCommitted(true);
+    const calc = calculateScope3Emissions(defaultDoc);
+    setCalculation(calc);
+    fetchGoogleSheetData(defaultDoc, calc);
   }, []);
 
   const handleSelectPreset = (presetId: string) => {
     setActivePresetId(presetId);
     const matched = MOCK_DOCUMENT_PRESETS.find(p => p.id === presetId);
     if (matched) {
-      processDocumentData(matched.extracted, 'Preset Mock Engine');
+      processStagedDocument(matched.extracted, 'Preset Mock Engine');
     }
   };
 
@@ -224,14 +346,14 @@ export default function Home() {
         });
         const data = await res.json();
         if (data.success) {
-          processDocumentData(data.extracted, data.source);
+          processStagedDocument(data.extracted, data.source);
         } else {
-          processDocumentData(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
+          processStagedDocument(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
         }
       };
       reader.readAsDataURL(file);
     } catch {
-      processDocumentData(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
+      processStagedDocument(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
     }
   };
 
@@ -256,7 +378,7 @@ export default function Home() {
             {isSheetConnected ? 'Live ERP Database Connected (Google Sheet Direct)' : 'Local Static Fallback Active'}
           </span>
           <a
-            href="https://docs.google.com/spreadsheets/d/17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4/edit?gid=0#gid=0"
+            href={`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=0#gid=0`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 ml-2"
@@ -264,9 +386,9 @@ export default function Home() {
             [View Google Sheet ERP ↗]
           </a>
         </div>
-        {currentExtracted && calculation && (
+        {currentCommittedDoc && calculation && (
           <button
-            onClick={() => fetchGoogleSheetData(currentExtracted, calculation)}
+            onClick={() => fetchGoogleSheetData(currentCommittedDoc, calculation)}
             className="text-zinc-400 hover:text-white font-mono transition-colors text-[11px] underline underline-offset-4 cursor-pointer"
           >
             ↻ Re-sync Sheet Data
@@ -284,59 +406,77 @@ export default function Home() {
       )}
 
       {/* Main Multi-Tab View Content */}
-      <main className="flex-1 p-5 max-w-[1600px] mx-auto w-full">
+      <main className="flex-1 p-5 max-w-[1600px] mx-auto w-full space-y-4">
         
-        {/* TAB 1: Document Ingestion */}
+        {/* TAB 1: Document Ingestion & Human Review */}
         {activeTab === 'ingestion' && (
           <div className="w-full">
             <LeftPanel
-              currentExtracted={currentExtracted}
-              activePresetId={activePresetId}
+              stagedExtracted={stagedExtracted}
+              documentList={documentList}
+              selectedDocumentId={selectedDocumentId}
+              onSelectDocumentId={handleSwitchDocument}
               onSelectPreset={handleSelectPreset}
               onFileUpload={handleFileUpload}
               isProcessing={isProcessing}
               extractionSource={extractionSource}
               isExpandedView={true}
+              isCommitted={isCommitted}
+              isCommitting={isCommitting}
+              onCommitDocument={() => commitDocumentToGoogleSheet()}
+              onClearIngestedRows={handleClearIngestedRows}
             />
           </div>
         )}
 
-        {/* TAB 2: Knowledge Graph */}
+        {/* TAB 2: Knowledge Graph (Reflects Committed Data + Document Switcher) */}
         {activeTab === 'graph' && (
           <div className="w-full space-y-4">
-            <KnowledgeGraph extracted={currentExtracted} calculation={calculation} />
+            <DocumentSwitcher
+              documents={documentList}
+              selectedDocId={selectedDocumentId}
+              onSelectDoc={handleSwitchDocument}
+            />
+            <KnowledgeGraph extracted={currentCommittedDoc} calculation={calculation} />
           </div>
         )}
 
-        {/* TAB 3: Actions & Trade-off Analytics */}
+        {/* TAB 3: Actions & Trade-off Analytics (Reflects Committed Data + Document Switcher) */}
         {activeTab === 'actions' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full items-start">
-            <div className="lg:col-span-6">
-              <AnalyticsPanel
-                extracted={currentExtracted}
-                calculation={calculation}
-                alternatives={alternatives}
-                selectedAltId={selectedAltId}
-                onSelectAlternative={(id) => {
-                  setSelectedAltId(id);
-                  const matched = alternatives.find(a => a.id === id);
-                  if (matched) {
-                    addLog('Reason', `Simulating Scenario: ${matched.supplierName} (-${matched.carbonReductionPercentage}% tCO2e)`, 'info');
-                  }
-                }}
-              />
-            </div>
+          <div className="w-full space-y-4">
+            <DocumentSwitcher
+              documents={documentList}
+              selectedDocId={selectedDocumentId}
+              onSelectDoc={handleSwitchDocument}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full items-start">
+              <div className="lg:col-span-6">
+                <AnalyticsPanel
+                  extracted={currentCommittedDoc}
+                  calculation={calculation}
+                  alternatives={alternatives}
+                  selectedAltId={selectedAltId}
+                  onSelectAlternative={(id) => {
+                    setSelectedAltId(id);
+                    const matched = alternatives.find(a => a.id === id);
+                    if (matched) {
+                      addLog('Reason', `Simulating Scenario: ${matched.supplierName} (-${matched.carbonReductionPercentage}% tCO2e)`, 'info');
+                    }
+                  }}
+                />
+              </div>
 
-            <div className="lg:col-span-6">
-              <RightPanel
-                extracted={currentExtracted}
-                calculation={calculation}
-                selectedAlternative={selectedAlt}
-                activityLogs={activityLogs}
-                onOpenRFQModal={() => setActiveModal('RFQ')}
-                onOpenEmailModal={() => setActiveModal('EMAIL')}
-                onOpenERPModal={() => setActiveModal('ERP')}
-              />
+              <div className="lg:col-span-6">
+                <RightPanel
+                  extracted={currentCommittedDoc}
+                  calculation={calculation}
+                  selectedAlternative={selectedAlt}
+                  activityLogs={activityLogs}
+                  onOpenRFQModal={() => setActiveModal('RFQ')}
+                  onOpenEmailModal={() => setActiveModal('EMAIL')}
+                  onOpenERPModal={() => setActiveModal('ERP')}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -347,7 +487,7 @@ export default function Home() {
       <ActionModals
         modalType={activeModal}
         onClose={() => setActiveModal(null)}
-        extracted={currentExtracted}
+        extracted={currentCommittedDoc}
         selectedAlternative={selectedAlt}
         onAddAuditLog={(log) => setAuditLogs(prev => [log, ...prev])}
         auditLogs={auditLogs}

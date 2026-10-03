@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const SHEET_ID = "17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4";
+const SHEET_ID = process.env.GOOGLE_SHEET_ID || "17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4";
 const GOOGLE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
 export async function GET() {

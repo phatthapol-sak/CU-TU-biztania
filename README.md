@@ -5,9 +5,9 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 
 ---
 
-## 🏛️ สรุปสถาปัตยกรรม 3-Tab Multi-View Navigation
+## 🏛️ สรุปสถาปัตยกรรม 3-Tab Multi-View Navigation & Human-in-the-Loop Workflow
 
-ระบบถูกออกแบบใหม่ให้แบ่งมุมมองออกเป็น 3 Tabs หลัก เพื่อลดความแออัดของหน้าจอและเพิ่มพื้นที่แสดงผลอย่างเต็มประสิทธิภาพ:
+ระบบถูกออกแบบใหม่ให้แบ่งมุมมองออกเป็น 3 Tabs หลัก พร้อมระบบ **2-Stage Human-in-the-Loop Review & Commit**:
 
 ```text
 +-----------------------------------------------------------------------------------+
@@ -16,75 +16,43 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 ```
 
 ### 1. 📑 Tab 1: `[01. DOCUMENT INGESTION & TECHNICAL INSPECTOR]`
-- **Demo Document Presets:** เลือกทดสอบนำเข้าเอกสารจำลองล่วงหน้า 3 รูปแบบ:
-  1. *Supplier A - Thai Plastics Industry (Rayong → Chonburi):* 2,000 kg Virgin PP @ ฿50/kg = ฿100,000 THB (🔴 High Carbon Anomaly: 3.28 tCO2e)
-  2. *Supplier B - Thai EcoPolymer Solutions (Samut Prakan → Chonburi):* 4,000 kg rPP @ ฿58/kg = ฿232,000 THB (🟡 Moderate Footprint: 3.14 tCO2e)
-  3. *Supplier C - Thai BioPack Packaging (Saraburi → Chonburi):* 3,000 kg Corrugated Packaging @ ฿25/kg = ฿75,000 THB (🟢 Nominal Baseline: 2.88 tCO2e)
+- **2-Stage Human-in-the-Loop Ingestion:**
+  - **Stage 1 (Staged for Review):** เมื่ออัปโหลดไฟล์หรือเลือก Preset ระบบจะสกัดข้อมูลมาแสดงพรีวิวใน Technical Sheet Inspector โดยยังไม่อัปเดตตัวเลขคาร์บอนภาพรวมในแท็บอื่น
+  - **Stage 2 (`[Upload & Commit to Google Sheet Database]`):** เมื่อผู้ใช้ตรวจสอบความถูกต้องและกดปุ่มยืนยัน ระบบจะส่งข้อมูลไปบันทึกเพิ่มแถว (Append Row) ลงใน Google Sheet ERP ผ่าน API POST (`/api/sheets/append`) และแสดงสถานะ `[SYNCED TO GOOGLE SHEET]`
+- **Registered Documents & Clear Rows:** มีรายการเอกสารที่ลงทะเบียนแล้วพร้อมปุ่ม **`[Clear Ingested Rows]`** สำหรับเคลียร์ข้อมูลเพื่อรีเซ็ตกลับสู่ค่าเริ่มต้น
 - **Custom File Upload:** รองรับการลากวาง (Drag & Drop) ไฟล์ PDF/PNG/JPG ชนิด Invoices, BOMs และ Waybills
 - **Gemini Vision AI Engine:** สกัดข้อมูลโครงสร้าง JSON (Pydantic/TypeScript Schema) เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
-- **Technical Sheet Inspector:** แสดงผลการตรวจสอบเอกสารสเปกอย่างละเอียด หรือเลือกสลับดู **Raw Extracted JSON** ได้ทันที
 
 ### 2. 🕸️ Tab 2: `[02. SUPPLY CHAIN KNOWLEDGE GRAPH]`
+- **Document Switcher Bar:** แถบเลือกเอกสารด้านบนสุด สามารถสลับเลือกดูโหนดความสัมพันธ์และผลการตรวจสอบตามใบสั่งซื้อ (PO) แต่ละใบได้ทันที
 - **Spacious SVG Topological Network Graph:** ผังโครงข่ายความสัมพันธ์ความละเอียดสูงระหว่าง:
   $$\text{Tier-1 Supplier} \xrightarrow{\text{TRANSPORTED\_BY}} \text{Logistics Carrier} \xrightarrow{\text{IN\_PRODUCT}} \text{Production Line}$$
   $$\text{Material Specification} \xrightarrow{\text{EMITS}} \text{Scope 3 Carbon Audit Outcome}$$
 - **Interactive Node Selection:** กดเลือก Node เพื่อดูรายละเอียดในแถบ **Node Telemetry Inspector** ด้านล่าง (4-Column Monospace Data Strip)
-- **Anomaly Highlight:** Node ที่ปล่อยคาร์บอนเกินเกณฑ์จะเน้นด้วยขอบสีแดง (`border-rose-800 font-bold`) โดยไม่มีเอฟเฟกต์ไฟนีออนหรือวงกลมลอยที่ไม่เป็นระเบียบ
+- **Anomaly Highlight:** Node ที่ปล่อยคาร์บอนเกินเกณฑ์จะเน้นด้วยขอบสีแดง (`border-rose-800 font-bold`)
 
 ### 3. 📊 Tab 3: `[03. SCENARIO ANALYTICS & AUTONOMOUS ACTIONS]`
+- **Document Switcher Bar:** แถบสลับเอกสาร PO ด้านบน สะท้อนตัวเลข Scope 3 Baseline และทางเลือกสีเขียวตามเอกสารใบนั้นๆ
 - **Live Google Sheets ERP Integration:** เชื่อมต่อฐานข้อมูลจัดซื้อแบบสดผ่าน Google Sheets:
   - 🔗 **Google Sheet ERP Database:** [เข้าสู่ตารางฐานข้อมูล Google Sheet ↗](https://docs.google.com/spreadsheets/d/17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4/edit?gid=0#gid=0)
-  - เชื่อมต่อผ่าน API Proxy Server (`/api/sheets`) ขจัดปัญหา Browser CORS
-  - เมื่อแก้ไขราคา `price_per_kg`, ค่า `emission_factor`, `transport_mode`, `certifications` หรือ `location` ใน Google Sheet ระบบจะคำนวณใหม่และอัปเดตทั้งการ์ดและกราฟแบบ Real-time เพียงกด **`↻ Re-sync Sheet Data`**
-- **Multi-Objective Scenario Matrix:** เปรียบเทียบทางเลือกจัดซื้อสีเขียว (เช่น *EcoPolymer Solutions Ltd* ที่ใช้เม็ด rPP ขนส่งด้วยรถไฟไฟฟ้า และ *GreenTech Materials* เม็ดพลาสติกชีวภาพ)
-- **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบระหว่างสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost (฿ THB / $ USD)**
-- **GHG Protocol DEFRA / TGO Audit Database:** ตารางอ้างอิงค่า Emission Factors มาตรฐาน ( Virgin PP `1.63 - 2.10 kgCO2e/kg`, rPP `0.50 - 0.78 kgCO2e/kg`, Electric Rail Freight `0.028 kgCO2e/tonne-km`)
-- **Copilot 3-Tier Audit Card:**
-  - 🔴 **HIGH SEVERITY:** Carbon Anomaly Flagged (Virgin PP Resin) แสดงกล่อง Trade-off (Carbon vs Cost vs Lead Time)
-  - 🟡 **MEDIUM SEVERITY:** Moderate Footprint Audit (Recycled rPP Resin) แสดงแถบ Circular Material Verified (Balanced)
-  - 🟢 **LOW SEVERITY:** Nominal Baseline Audit (Packaging Cardboard) แสดงแถบ ESG Compliant (Optimal)
-- **Autonomous Action Center:**
-  - 📄 **Generate Green RFQ:** สร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว ระบุโหมดขนส่ง สถานที่ และการรับรองมาตรฐานสากล
-  - ✉️ **Draft Negotiation Email:** ร่างอีเมลเจรจาขอใบรับรองคาร์บอนฟุตพริ้นท์ (CFP) จากซัพพลายเออร์
-  - 🚀 **Dispatch ERP Webhook:** ส่งข้อมูลสั่งซื้อใหม่ไปยังระบบ SAP S/4HANA / NetSuite ERP พร้อมเก็บบันทึก Audit Trail Log
+  - ดึงข้อมูลสดผ่าน API Proxy (`/api/sheets`) ขจัดปัญหา CORS และปัญหาวนลูปร้องขอข้อมูลด้วย `useCallback`
+- **Multi-Objective Scenario Matrix:** กรองแสดงผลเฉพาะแผนทางเลือกจัดซื้อสีเขียวแท้จริง (`Plan B` และ `Plan C`) แยกจากการ์ด Baseline 
+- **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost (฿ THB / $ USD)**
+- **Copilot 3-Tier Audit Card & Autonomous Action Center:**
+  - 📄 **Generate Green RFQ:** สร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว
+  - ✉️ **Draft Negotiation Email:** ร่างอีเมลเจรจาขอใบรับรองคาร์บอนฟุตพริ้นท์ (CFP)
+  - 🚀 **Dispatch ERP Webhook:** ส่งข้อมูลสั่งซื้อใหม่ไปยังระบบ SAP S/4HANA / NetSuite ERP
 
 ---
 
-## 🔄 ภาพรวมการทำงานของระบบ (System Workflow Diagram)
-
-```mermaid
-flowchart TD
-    A[📄 Document Ingestion<br/>Invoice / Waybill / BOM] --> B[👁️ Gemini Vision AI / Presets<br/>Tab 1: Document Ingestion]
-    B --> C[🏷️ Extract Structured Schema<br/>Supplier, Material, Qty, Freight Distance]
-    
-    C --> D[🕸️ Supply Chain Knowledge Graph<br/>Tab 2: Interactive SVG Network & Node Inspector]
-    C --> E[📚 DEFRA 2024 / TGO Standard Lookup<br/>Retrieve Emission Factors]
-    
-    E --> F[🧠 Scope 3 Carbon Footprint Calculation<br/>Material Emissions + Transport Emissions]
-    F --> G{🚨 Anomaly Detection Audit<br/>> 10.0 tCO2e or > Baseline + 25%}
-    
-    G -- Yes (Critical/High Risk) --> H[💡 Multi-Objective Optimizer<br/>Tab 3: Scenario Simulation & Analytics]
-    G -- No (Nominal Baseline) --> H
-    
-    H --> I[📊 Recharts Emissions vs Cost Chart]
-    H --> J[🤖 Autonomous Action Center<br/>Executive Human-in-the-Loop Approval]
-    
-    J --> K1[📄 Dispatch Green RFQ Document]
-    J --> K2[✉️ Send Supplier Negotiation Email]
-    J --> K3[🚀 Sync SAP / NetSuite ERP Webhook & Audit Log]
-```
-
----
-
-## 🎨 การออกแบบ UI/UX (Linear / Vercel Design System)
+## 🎨 การออกแบบ UI/UX & Hydration Protection
 
 - **Palette Theme (Subdued Dark Zinc):**
   - **Backgrounds:** Base `bg-zinc-950` (#09090b), Cards `bg-zinc-900` (#18181b)
   - **Borders:** Default `border-zinc-800` (#27272a), Focus `border-zinc-700` (#3f3f46)
   - **Typography:** Primary `text-zinc-100`, Labels/Captions `text-zinc-400`/`text-zinc-500`, Data `text-zinc-200`
   - **Accents:** Restrained `emerald-400` สำหรับค่าคาร์บอนต่ำ และ `rose-400`/`rose-900` สำหรับจุดเสี่ยงสูง
-- **No Flashy AI Tropes:** ไม่มีการใช้แสงไฟนีออนเรืองแสง (No neon blur glow), ไม่มีแอนิเมชันวงกลมเต้น (No `animate-ping`), และไม่มีปุ่มสีรุ้งไล่เฉด (No rainbow gradients)
-- **Standardized Panel Badges:** หัวข้อทุก Panel ใช้ Badge ตัวเลขรหัสแบบ Single Line ละเอียดระดับพิกเซล (`min-w-[20px] px-1.5 font-mono text-[10px] whitespace-nowrap`) ป้องกันข้อความตกบรรทัด
+- **Hydration Warning Suppression:** เพิ่ม prop `suppressHydrationWarning` ใน [src/app/layout.tsx](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/layout.tsx) เพื่อป้องกันการแจ้งเตือนเตือนความขัดแย้งของ DOM จาก Browser Extensions
 
 ---
 
@@ -94,6 +62,7 @@ flowchart TD
 - **Styling:** Tailwind CSS, JetBrains Mono & Inter Fonts
 - **Data Visualization:** Recharts (Custom dark theme chart), SVG Network Canvas
 - **AI Integration:** Google Gemini API (`@google/genai`) พร้อมระบบ Fallback Mock Engine
+- **Cloud Database:** Google Sheet ERP Database ผ่าน Google Apps Script Web App API Proxy
 
 ---
 
@@ -104,10 +73,12 @@ flowchart TD
 npm install
 ```
 
-### 2. กำหนดค่า Environment (Optional)
-หากต้องการใช้งาน Google Gemini Vision API สามารถสร้างไฟล์ `.env.local`:
-```bash
-cp .env.local.example .env.local
+### 2. กำหนดค่า Environment (`.env`)
+กำหนดค่า Web App URL และ Google Sheet ID ในไฟล์ `.env`:
+```env
+GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
+GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
+NEXT_PUBLIC_GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
 ```
 
 ### 3. รัน Development Server
@@ -129,25 +100,29 @@ npm run build
 greenscope-poc/
 ├── src/
 │   ├── app/
-│   │   ├── api/extract/route.ts   # API Route สำหรับ Gemini Vision & Emission Calculations
-│   │   ├── globals.css            # Dark Zinc Theme & Minimal Scrollbars
-│   │   ├── layout.tsx             # Root Layout, Inter & JetBrains Mono Fonts
-│   │   └── page.tsx               # Main Multi-Tab View Dashboard State Controller
+│   │   ├── api/extract/route.ts       # API Route สำหรับ Gemini Vision Extraction
+│   │   ├── api/sheets/route.ts        # API Route สำหรับอ่านข้อมูลสดจาก Google Sheet CSV
+│   │   ├── api/sheets/append/route.ts # API Route สำหรับยิง POST Append แถวใหม่ลง Google Sheet
+│   │   ├── api/sheets/clear/route.ts  # API Route สำหรับรีเซ็ต/ลบแถวที่ Append เข้ามา
+│   │   ├── globals.css                # Dark Zinc Theme & Minimal Scrollbars
+│   │   ├── layout.tsx                 # Root Layout พร้อม suppressHydrationWarning
+│   │   └── page.tsx                   # Main Multi-Tab Controller & useCallback Handlers
 │   ├── components/
-│   │   ├── Header.tsx             # System Telemetry Strip & Sub-Header 3-Tab Bar
-│   │   ├── LeftPanel.tsx          # Tab 1: Presets, Upload Dropzone & Technical Sheet
-│   │   ├── KnowledgeGraph.tsx     # Tab 2: Interactive SVG Topological Network & Inspector
-│   │   ├── AnalyticsPanel.tsx     # Tab 3: Recharts Scenario Chart & DEFRA Audit Table
-│   │   ├── RightPanel.tsx         # Tab 3: Copilot Diagnosis, Actions & Live Feed
-│   │   └── ActionModals.tsx       # Modals สำหรับ Green RFQ, Email Draft, ERP Webhook
+│   │   ├── Header.tsx                 # System Telemetry Strip & Sub-Header 3-Tab Bar
+│   │   ├── LeftPanel.tsx              # Tab 1: Presets, Upload Dropzone & Technical Sheet Inspector
+│   │   ├── KnowledgeGraph.tsx         # Tab 2: Interactive SVG Topological Network & Inspector
+│   │   ├── AnalyticsPanel.tsx         # Tab 3: Recharts Scenario Chart & DEFRA Audit Table
+│   │   ├── RightPanel.tsx             # Tab 3: Copilot Diagnosis, Actions & Live Feed
+│   │   ├── DocumentSwitcher.tsx       # แถบเลือกสลับเอกสาร PO ด้านบนสุดของ Tab 2 และ Tab 3
+│   │   └── ActionModals.tsx           # Modals สำหรับ Green RFQ, Email Draft, ERP Webhook
 │   ├── data/
-│   │   ├── emissionFactors.ts     # DEFRA 2024 & TGO Standard Emission Factors
-│   │   └── mockDocuments.ts       # Preset Documents Data (Virgin PP, rPP, Cardboard)
+│   │   ├── emissionFactors.ts         # DEFRA 2024 & TGO Standard Emission Factors
+│   │   └── mockDocuments.ts           # Preset Documents Data (Virgin PP, rPP, Cardboard)
 │   ├── lib/
-│   │   ├── calculator.ts          # สูตรคำนวณ Scope 3, EF Matching & Trade-offs
-│   │   └── gemini.ts              # Gemini Vision AI Extraction Service
+│   │   ├── calculator.ts              # สูตรคำนวณ Scope 3, EF Matching & Trade-offs
+│   │   └── gemini.ts                  # Gemini Vision AI Extraction Service
 │   └── types/
-│       └── index.ts               # TypeScript Interfaces (Document, Graph, Log, Alternative)
-├── README.md                      # อัปเดตล่าสุด: สถาปัตยกรรม Multi-Tab และ Minimal UI
-└── package.json
+│       └── index.ts                   # TypeScript Interfaces
+├── .env                               # Environment variables สำหรับ Google Sheet & Apps Script
+└── README.md                          # คู่มือสถาปัตยกรรมและการใช้งานฉบับอัปเดตล่าสุด
 ```

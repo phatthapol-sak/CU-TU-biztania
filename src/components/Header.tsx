@@ -10,11 +10,14 @@ interface HeaderProps {
   calculation: CarbonCalculation | null;
   activeTab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
+  maxReduction?: number;
 }
 
-export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabChange }) => {
+export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabChange, maxReduction = 78 }) => {
   const isHighAnomaly = calculation?.baselineComparison.isAnomaly;
-  const currentTCO2e = calculation?.totalEmissionsTCO2e || 17.35;
+  const severity = calculation?.baselineComparison.anomalySeverity || 'LOW';
+  const isMedium = severity === 'MEDIUM';
+  const currentTCO2e = calculation?.totalEmissionsTCO2e || 3.28;
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -48,18 +51,20 @@ export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabCha
           <div className={`border rounded px-3 py-1 flex items-center space-x-2 ${
             isHighAnomaly 
               ? 'bg-rose-950/40 border-rose-800 text-rose-300' 
+              : isMedium
+              ? 'bg-amber-950/40 border-amber-800 text-amber-300'
               : 'bg-zinc-900 border-zinc-800 text-emerald-400'
           }`}>
             <span className="text-zinc-400 text-[10px] uppercase font-semibold">RISK_STATUS:</span>
             <span className="font-bold flex items-center gap-1">
               {isHighAnomaly && <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />}
-              {isHighAnomaly ? 'ANOMALY DETECTED' : 'NOMINAL BASELINE'}
+              {isHighAnomaly ? 'ANOMALY DETECTED' : isMedium ? 'MODERATE FOOTPRINT' : 'NOMINAL BASELINE'}
             </span>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded px-3 py-1 flex items-center space-x-2">
             <span className="text-zinc-500 text-[10px] uppercase font-semibold">MAX_REDUCTION:</span>
-            <span className="text-emerald-400 font-bold">-63.0%</span>
+            <span className="text-emerald-400 font-bold">-{maxReduction > 0 ? maxReduction.toFixed(1) : '78.0'}%</span>
           </div>
         </div>
 

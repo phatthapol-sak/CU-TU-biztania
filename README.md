@@ -1,84 +1,92 @@
 # 🌿 GreenScope Concierge
-> **Autonomous Scope 3 Carbon Accounting & Green Procurement AI Agent**
+> **Minimal, Production-Grade Scope 3 Carbon Accounting & Green Procurement AI Agent**
 
-GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะที่ช่วยจัดการข้อมูลคาร์บอนฟุตพริ้นท์ของห่วงโซ่อุปทาน (Scope 3 GHG Emissions) แบบอัตโนมัติ ตั้งแต่การอ่านเอกสารทางธุรกิจ (Invoices, BOMs, Waybills), การสร้าง Supply Chain Knowledge Graph, การประเมินค่าความเสี่ยงด้านคาร์บอน ตามมาตรฐาน DEFRA/TGO ไปจนถึงการตัดสินใจดำเนินการแก้ไขปัญหาคาร์บอนสูงด้วยการเปิดจัดซื้อจัดจ้างสีเขียว (Green RFQ), เจรจากับคู่ค้า และเชื่อมต่อกับระบบวางแผนทรัพยากรองค์กร (ERP)
-
----
-
-## 🚀 สรุปสิ่งที่พัฒนาเสร็จเรียบร้อยแล้ว (Completed Features)
-
-### 1. 📥 Pillar 1: Understand (Multimodal Ingestion & Schema Extraction)
-- **ระบบนำเข้าเอกสาร:** รองรับการอัปโหลดไฟล์ PDF/PNG/JPG (ใบกำกับสินค้า, ใบส่งของ, รายการวัตถุดิบ BOM)
-- **Gemini Vision AI Engine:** ดึงข้อมูลโครงสร้าง JSON (Pydantic/TypeScript Schema) เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
-- **Preloaded Document Presets:** มีเอกสารจำลองพร้อมใช้งานทันที 3 รูปแบบ:
-  1. *Supplier A - Virgin PP Plastic Invoice* ( High Carbon Anomaly: 17.35 tCO2e)
-  2. *Supplier B - Recycled Polymer Waybill* ( Medium Carbon: 4.76 tCO2e)
-  3. *Supplier C - Packaging Cardboard* ( Low Carbon: 2.89 tCO2e)
-- **Dual View Inspector:** สามารถสลับดูได้ทั้งมุมมอง **Visual Invoice Card** และ **Raw Extracted JSON Schema**
-
-### 2. 🕸️ Pillar 2: Remember & Connect (Dynamic Supply Chain Knowledge Graph)
-- **Interactive SVG Knowledge Graph:** แสดงโครงข่ายความสัมพันธ์ระหว่าง **Suppliers**, **Materials**, **Logistics**, **Products**, และ **Carbon Footprint Scores**
-- **Severity Color Coding:** แยกสีตามระดับความเสี่ยงด้านคาร์บอน (🔴 สีแดง = High Risk, 🟡 สีส้ม = Medium, 🟢 สีเขียว = Low)
-- **Node Inspector & Edges:** กดเลือก Node เพื่อดูรายละเอียด แลกแสดงเส้นเชื่อมโยงแบบ `SUPPLIES`, `TRANSPORTED_BY`, `IN_PRODUCT`, `EMITS`
-
-### 3. 📚 Pillar 3: Retrieve (GHG Emission Factor Lookup)
-- **ฐานข้อมูลค่า Emission Factors Standard (DEFRA 2024 / TGO Standard):**
-  - เม็ดพลาสติกบริสุทธิ์ Virgin PP Resin: `2.10 kgCO2e/kg`
-  - เม็ดพลาสติกรีไซเคิล Post-Consumer rPP Resin: `0.78 kgCO2e/kg`
-  - กล่องกระดาษ Corrugated Cardboard: `0.95 kgCO2e/kg`
-  - ขนส่งทางบกด้วยรถบรรทุกดีเซล (Road Diesel Freight): `0.105 kgCO2e/tonne-km`
-  - ขนส่งทางรถไฟไฟฟ้า (Electric Rail Freight): `0.028 kgCO2e/tonne-km`
-- **Fuzzy Semantic Matching:** ระบบจับคู่ชื่อสินค้าและรูปแบบการขนส่งจากเอกสารเข้ากับค่ามาตรฐานอัตโนมัติ
-
-### 4. 🧠 Pillar 4: Reason (Anomaly Detection & Multi-Objective Optimization)
-- **การคำนวณคาร์บอนฟุตพริ้นท์:**
-  $$\text{Total Emissions (kgCO2e)} = (\text{Quantity} \times \text{Material EF}) + (\text{Tonnage} \times \text{Distance} \times \text{Transport EF})$$
-- **ระบบตรวจจับความผิดปกติ (Anomaly Alert):** แจ้งเตือนทันทีเมื่อปริมาณปล่อยคาร์บอนเกินเกณฑ์ `10.0 tCO2e` หรือเกินกว่าค่า Baseline 25%
-- **Multi-Objective Trade-off Engine:** แนะนำทางเลือกจัดซื้อสีเขียว (เช่น *EcoPolymer Solutions Ltd* ที่ใช้เม็ด rPP ขนส่งด้วยรถไฟไฟฟ้า) พร้อมคำนวณเปรียบเทียบผลกระทบ:
-  - 📉 ปริมาณคาร์บอนลดลง **-63.0% tCO2e**
-  - 💰 ต้นทุนวัตถุดิบเปลี่ยนแปลง **+4.09% USD**
-  - 🚚 ระยะเวลาส่งมอบ (Lead Time) **+1 วัน**
-- **Recharts Scenario Analytics:** กราฟจำลองเปรียบเทียบระหว่างสภาวะปัจจุบัน (Current Baseline) กับสภาวะพึงประสงค์ (Green Scenario)
-
-### 5. ⚡ Pillar 5 & 6: Act & Operational Copilot (Autonomous Action Center)
-- **Action 1 - Green RFQ Generator:** ระบบสร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว (Request for Quotation) แบบอัตโนมัติ พร้อมปุ่มอนุมัติส่งออก (Approve & Dispatch) และเอฟเฟกต์ฉลองความสำเร็จ Confetti
-- **Action 2 - Diplomatic Negotiation Draft:** ระบบร่างอีเมลเจรจากับซัพพลายเออร์เดิม เพื่อขอใบรับรองรอยเท้าคาร์บอน (CFP Certificate) หรือขอปรับลดราคาเพื่อแข่งขันกับวัตถุดิบรีไซเคิล
-- **Action 3 - Mock ERP Webhook Dispatcher:** จำลองการส่งข้อมูล Webhook API ไปยังระบบ SAP S/4HANA / NetSuite ERP เพื่ออัปเดตสถานะการสั่งซื้อพร้อม Audit Trail Log ย้อนหลัง
+GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะสำหรับบริหารจัดการข้อมูลคาร์บอนฟุตพริ้นท์ของห่วงโซ่อุปทาน (Scope 3 GHG Emissions) ในระดับองค์กร ออกแบบตามมาตรฐาน **Linear/Vercel Design System** (Dark Zinc Aesthetic) เน้นความเรียบหรู สะอาด สวยงาม และแสดงข้อมูลอย่างมีประสิทธิภาพ ตั้งแต่การนำเข้าเอกสารจัดซื้อ, การประมวลผลด้วย Gemini Vision AI, การสร้าง Supply Chain Knowledge Graph, การวิเคราะห์ความเสี่ยงตามมาตรฐาน DEFRA/TGO ไปจนถึงการตัดสินใจดำเนินการจัดซื้อจัดจ้างสีเขียว (Green RFQ) และการซิงค์ข้อมูลกับระบบ ERP
 
 ---
 
-## 🔄 ภาพรวมการทำงานของระบบ (System Workflow Flowchart)
+## 🏛️ สรุปสถาปัตยกรรม 3-Tab Multi-View Navigation
+
+ระบบถูกออกแบบใหม่ให้แบ่งมุมมองออกเป็น 3 Tabs หลัก เพื่อลดความแออัดของหน้าจอและเพิ่มพื้นที่แสดงผลอย่างเต็มประสิทธิภาพ:
+
+```text
++-----------------------------------------------------------------------------------+
+|  GREENSCOPE.AI // SCOPE-3 ENGINE    [01. INGESTION]  [02. GRAPH]  [03. ACTIONS]   |
++-----------------------------------------------------------------------------------+
+```
+
+### 1. 📑 Tab 1: `[01. DOCUMENT INGESTION & TECHNICAL INSPECTOR]`
+- **Demo Document Presets:** เลือกทดสอบนำเข้าเอกสารจำลองล่วงหน้า 3 รูปแบบ:
+  1. *Supplier A - Virgin PP Plastic Invoice* (🔴 High Carbon Anomaly: 17.35 tCO2e)
+  2. *Supplier B - Recycled Polymer Waybill* (🟡 Medium Footprint: 4.76 tCO2e)
+  3. *Supplier C - Packaging Cardboard* (🟢 Low Footprint: 2.89 tCO2e)
+- **Custom File Upload:** รองรับการลากวาง (Drag & Drop) ไฟล์ PDF/PNG/JPG ชนิด Invoices, BOMs และ Waybills
+- **Gemini Vision AI Engine:** สกัดข้อมูลโครงสร้าง JSON (Pydantic/TypeScript Schema) เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
+- **Technical Sheet Inspector:** แสดงผลการตรวจสอบเอกสารสเปกอย่างละเอียด หรือเลือกสลับดู **Raw Extracted JSON** ได้ทันที
+
+### 2. 🕸️ Tab 2: `[02. SUPPLY CHAIN KNOWLEDGE GRAPH]`
+- **Spacious SVG Topological Network Graph:** ผังโครงข่ายความสัมพันธ์ความละเอียดสูงระหว่าง:
+  $$\text{Tier-1 Supplier} \xrightarrow{\text{TRANSPORTED\_BY}} \text{Logistics Carrier} \xrightarrow{\text{IN\_PRODUCT}} \text{Production Line}$$
+  $$\text{Material Specification} \xrightarrow{\text{EMITS}} \text{Scope 3 Carbon Audit Outcome}$$
+- **Interactive Node Selection:** กดเลือก Node เพื่อดูรายละเอียดในแถบ **Node Telemetry Inspector** ด้านล่าง (4-Column Monospace Data Strip)
+- **Anomaly Highlight:** Node ที่ปล่อยคาร์บอนเกินเกณฑ์จะเน้นด้วยขอบสีแดง (`border-rose-800 font-bold`) โดยไม่มีเอฟเฟกต์ไฟนีออนหรือวงกลมลอยที่ไม่เป็นระเบียบ
+
+### 3. 📊 Tab 3: `[03. SCENARIO ANALYTICS & AUTONOMOUS ACTIONS]`
+- **Multi-Objective Scenario Matrix:** เปรียบเทียบทางเลือกจัดซื้อสีเขียว (เช่น *EcoPolymer Solutions Ltd* ที่ใช้เม็ด rPP ขนส่งด้วยรถไฟไฟฟ้า)
+- **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบระหว่างสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost ($ USD)**
+- **GHG Protocol DEFRA / TGO Audit Database:** ตารางอ้างอิงค่า Emission Factors มาตรฐาน ( Virgin PP `2.10 kgCO2e/kg`, rPP `0.78 kgCO2e/kg`, Electric Rail Freight `0.028 kgCO2e/tonne-km`)
+- **Copilot Diagnosis Card:** การวินิจฉัยความเสี่ยงคาร์บอนและตารางสรุปผลกระทบ 3 มิติ (Carbon Delta, Cost Delta, Lead Time)
+- **Autonomous Action Center:**
+  - 📄 **Generate Green RFQ:** สร้างเอกสารขอเสนอราคาการจัดซื้อจัดจ้างสีเขียว
+  - ✉️ **Draft Negotiation Email:** ร่างอีเมลเจรจาขอใบรับรองคาร์บอนฟุตพริ้นท์ (CFP) จากซัพพลายเออร์
+  - 🚀 **Dispatch ERP Webhook:** ส่งข้อมูลสั่งซื้อใหม่ไปยังระบบ SAP S/4HANA / NetSuite ERP พร้อมเก็บบันทึก Audit Trail Log
+
+---
+
+## 🔄 ภาพรวมการทำงานของระบบ (System Workflow Diagram)
 
 ```mermaid
 flowchart TD
-    A[📄 Ingest Unstructured Document<br/>Invoice / Waybill / BOM] --> B[👁️ Pillar 1: Multimodal Extraction<br/>Gemini Vision AI / Presets]
-    B --> C[🏷️ Extract Structured Schema<br/>Supplier, Material, Qty, Distance]
+    A[📄 Document Ingestion<br/>Invoice / Waybill / BOM] --> B[👁️ Gemini Vision AI / Presets<br/>Tab 1: Document Ingestion]
+    B --> C[🏷️ Extract Structured Schema<br/>Supplier, Material, Qty, Freight Distance]
     
-    C --> D[🕸️ Pillar 2: Supply Chain Knowledge Graph<br/>Connect Nodes & Evaluate Severity]
-    C --> E[📚 Pillar 3: Retrieve Emission Factors<br/>Match DEFRA 2024 / TGO Standards]
+    C --> D[🕸️ Supply Chain Knowledge Graph<br/>Tab 2: Interactive SVG Network & Node Inspector]
+    C --> E[📚 DEFRA 2024 / TGO Standard Lookup<br/>Retrieve Emission Factors]
     
-    E --> F[🧠 Pillar 4: Scope 3 Emission Calculation<br/>Material Emissions + Transport Emissions]
-    F --> G{🚨 Is Anomaly Detected?<br/>> 10.0 tCO2e or > Baseline + 25%}
+    E --> F[🧠 Scope 3 Carbon Footprint Calculation<br/>Material Emissions + Transport Emissions]
+    F --> G{🚨 Anomaly Detection Audit<br/>> 10.0 tCO2e or > Baseline + 25%}
     
-    G -- Yes (High Severity) --> H[💡 Multi-Objective Optimizer<br/>Generate Green Alternatives & Trade-offs]
-    G -- No (Normal Baseline) --> H
+    G -- Yes (Critical/High Risk) --> H[💡 Multi-Objective Optimizer<br/>Tab 3: Scenario Simulation & Analytics]
+    G -- No (Nominal Baseline) --> H
     
-    H --> I[📊 Render Scenario Analytics<br/>Recharts Current vs Green Comparison]
-    H --> J[🤖 Pillar 5 & 6: Autonomous Action Center<br/>Human-in-the-Loop Operations]
+    H --> I[📊 Recharts Emissions vs Cost Chart]
+    H --> J[🤖 Autonomous Action Center<br/>Executive Human-in-the-Loop Approval]
     
-    J --> K1[📄 Action 1: Dispatch Green RFQ]
-    J --> K2[✉️ Action 2: Send Negotiation Email]
-    J --> K3[🚀 Action 3: Sync SAP/ERP Webhook & Audit Log]
+    J --> K1[📄 Dispatch Green RFQ Document]
+    J --> K2[✉️ Send Supplier Negotiation Email]
+    J --> K3[🚀 Sync SAP / NetSuite ERP Webhook & Audit Log]
 ```
+
+---
+
+## 🎨 การออกแบบ UI/UX (Linear / Vercel Design System)
+
+- **Palette Theme (Subdued Dark Zinc):**
+  - **Backgrounds:** Base `bg-zinc-950` (#09090b), Cards `bg-zinc-900` (#18181b)
+  - **Borders:** Default `border-zinc-800` (#27272a), Focus `border-zinc-700` (#3f3f46)
+  - **Typography:** Primary `text-zinc-100`, Labels/Captions `text-zinc-400`/`text-zinc-500`, Data `text-zinc-200`
+  - **Accents:** Restrained `emerald-400` สำหรับค่าคาร์บอนต่ำ และ `rose-400`/`rose-900` สำหรับจุดเสี่ยงสูง
+- **No Flashy AI Tropes:** ไม่มีการใช้แสงไฟนีออนเรืองแสง (No neon blur glow), ไม่มีแอนิเมชันวงกลมเต้น (No `animate-ping`), และไม่มีปุ่มสีรุ้งไล่เฉด (No rainbow gradients)
+- **Standardized Panel Badges:** หัวข้อทุก Panel ใช้ Badge ตัวเลขรหัสแบบ Single Line ละเอียดระดับพิกเซล (`min-w-[20px] px-1.5 font-mono text-[10px] whitespace-nowrap`) ป้องกันข้อความตกบรรทัด
 
 ---
 
 ## 🛠️ เทคโนโลยีที่ใช้ (Tech Stack)
 
-- **Frontend / Fullstack:** Next.js 16 (App Router, TypeScript), Tailwind CSS v4, Lucide React
-- **Data Visualization:** Recharts (Interactive Bar & Scenario Analytics), Custom Animated SVG (Knowledge Graph)
-- **AI Engine:** Google Gemini API (`@google/genai`) พร้อมระบบ Mock Fallback ป้องกันการขัดข้อง
-- **UX & Effects:** Canvas Confetti (อนุมัติงานแบบซูเปอร์พรีเมียม), Toast Notifications
+- **Framework:** Next.js 16 (App Router, Turbopack, TypeScript)
+- **Styling:** Tailwind CSS, JetBrains Mono & Inter Fonts
+- **Data Visualization:** Recharts (Custom dark theme chart), SVG Network Canvas
+- **AI Integration:** Google Gemini API (`@google/genai`) พร้อมระบบ Fallback Mock Engine
 
 ---
 
@@ -90,17 +98,16 @@ npm install
 ```
 
 ### 2. กำหนดค่า Environment (Optional)
-หากต้องการใช้ Google Gemini Vision API จริง สามารถสร้างไฟล์ `.env.local` ได้จากตัวอย่าง:
+หากต้องการใช้งาน Google Gemini Vision API สามารถสร้างไฟล์ `.env.local`:
 ```bash
 cp .env.local.example .env.local
 ```
-*(หากไม่ใส่ API Key ระบบจะใช้ Mock Extraction Engine ที่ประมวลผลได้สมบูรณ์แบบ 100%)*
 
 ### 3. รัน Development Server
 ```bash
 npm run dev
 ```
-เปิดบราวเซอร์ไปที่ [http://localhost:3000](http://localhost:3000)
+เข้าใช้งานผ่านบราวเซอร์ที่ [http://localhost:3000](http://localhost:3000)
 
 ### 4. ทดสอบ Build สำหรับ Production
 ```bash
@@ -115,25 +122,25 @@ npm run build
 greenscope-poc/
 ├── src/
 │   ├── app/
-│   │   ├── api/extract/route.ts   # API Route สำหรับ Gemini Vision & Emissions Engine
-│   │   ├── globals.css            # Dark Theme & Custom Scrollbars
-│   │   ├── layout.tsx             # Root Layout & Typography Meta
-│   │   └── page.tsx               # Main Dashboard Grid Layout (3 Panels)
+│   │   ├── api/extract/route.ts   # API Route สำหรับ Gemini Vision & Emission Calculations
+│   │   ├── globals.css            # Dark Zinc Theme & Minimal Scrollbars
+│   │   ├── layout.tsx             # Root Layout, Inter & JetBrains Mono Fonts
+│   │   └── page.tsx               # Main Multi-Tab View Dashboard State Controller
 │   ├── components/
-│   │   ├── Header.tsx             # Brand, Scope 3 Status Badge, Quick Stats
-│   │   ├── LeftPanel.tsx          # Multimodal Ingestion, Preset Selector, Visual Inspector
-│   │   ├── KnowledgeGraph.tsx     # Interactive SVG Supply Chain Knowledge Graph
-│   │   ├── AnalyticsPanel.tsx     # Recharts Scenario Bar Chart & EF Audit Database
-│   │   ├── RightPanel.tsx         # AI Reasoning Insight Card, Action Center, Live Feed
+│   │   ├── Header.tsx             # System Telemetry Strip & Sub-Header 3-Tab Bar
+│   │   ├── LeftPanel.tsx          # Tab 1: Presets, Upload Dropzone & Technical Sheet
+│   │   ├── KnowledgeGraph.tsx     # Tab 2: Interactive SVG Topological Network & Inspector
+│   │   ├── AnalyticsPanel.tsx     # Tab 3: Recharts Scenario Chart & DEFRA Audit Table
+│   │   ├── RightPanel.tsx         # Tab 3: Copilot Diagnosis, Actions & Live Feed
 │   │   └── ActionModals.tsx       # Modals สำหรับ Green RFQ, Email Draft, ERP Webhook
 │   ├── data/
-│   │   ├── emissionFactors.ts     # DEFRA 2024 & TGO Emission Factors Database
-│   │   └── mockDocuments.ts       # Preset Documents (Virgin PP, rPP, Cardboard)
+│   │   ├── emissionFactors.ts     # DEFRA 2024 & TGO Standard Emission Factors
+│   │   └── mockDocuments.ts       # Preset Documents Data (Virgin PP, rPP, Cardboard)
 │   ├── lib/
-│   │   ├── calculator.ts          # สูตรคำนวณ Scope 3, EF Matching & Optimization
+│   │   ├── calculator.ts          # สูตรคำนวณ Scope 3, EF Matching & Trade-offs
 │   │   └── gemini.ts              # Gemini Vision AI Extraction Service
 │   └── types/
-│       └── index.ts               # TypeScript Interfaces (Document, Graph, Alternative, Log)
-├── README.md                      # เอกสารอธิบายโครงการและระบบการทำงาน
+│       └── index.ts               # TypeScript Interfaces (Document, Graph, Log, Alternative)
+├── README.md                      # อัปเดตล่าสุด: สถาปัตยกรรม Multi-Tab และ Minimal UI
 └── package.json
 ```

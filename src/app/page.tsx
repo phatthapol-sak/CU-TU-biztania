@@ -102,6 +102,38 @@ export default function Home() {
             const sheetBasePrice = planARow ? Number(planARow.price_per_kg) : null;
             const sheetBaseEF = planARow ? Number(planARow.emission_factor) : null;
 
+            // Map Staged PO rows from Google Sheet into registered documentList
+            const sheetDocs: ExtractedDocumentData[] = rows
+              .filter((r: any) => r.plan_type === 'Staged PO')
+              .map((r: any, idx: number) => {
+                const poMatch = r.recommendation?.match(/PO:\s*([^|\s]+)/);
+                const poNumber = poMatch ? poMatch[1] : `PO-SHEET-${idx + 1}`;
+                return {
+                  documentId: r.material_id || `DOC-SHEET-${idx + 1}`,
+                  documentType: 'Invoice',
+                  fileName: `${poNumber}.pdf`,
+                  supplierId: r.material_id || `SUP-00${idx + 1}`,
+                  supplierName: r.supplier_name || 'Recorded Supplier',
+                  materialName: r.material_name || 'Standard Material',
+                  materialCategory: 'Plastics & Polymers',
+                  quantity: 2000,
+                  unit: 'kg',
+                  transportMode: r.recommendation?.includes('Rail') ? 'Electric Rail Freight' : 'Road Diesel Freight',
+                  distanceKm: 120,
+                  totalCostUSD: (Number(r.price_per_kg) || 50) * 2000,
+                  unitCostUSD: Number(r.price_per_kg) || 50,
+                  issueDate: '2026-09-28',
+                  poNumber: poNumber
+                };
+              });
+
+            if (sheetDocs.length > 0) {
+              setDocumentList(() => {
+                const combined = [...sheetDocs, ...MOCK_DOCUMENT_PRESETS.map(p => p.extracted)];
+                return Array.from(new Map(combined.map(item => [item.documentId, item])).values());
+              });
+            }
+
             const basePrice = sheetBasePrice || baseExtracted.unitCostUSD || 50;
             const baseEF = sheetBaseEF || calc.matchedMaterialEF?.factorKgCO2ePerUnit || 1.63;
             const qty = baseExtracted.quantity || 2000;

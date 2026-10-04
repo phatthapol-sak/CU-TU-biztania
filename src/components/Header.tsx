@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabCha
 
           <div className="bg-zinc-900 border border-zinc-800 rounded px-3 py-1 flex items-center space-x-2">
             <span className="text-zinc-500 text-[10px] uppercase font-semibold">MAX_REDUCTION:</span>
-            <span className="text-emerald-400 font-bold">-{maxReduction > 0 ? maxReduction.toFixed(1) : '78.0'}%</span>
+            <span className="text-emerald-400 font-bold">-{(maxReduction ?? 78).toFixed(1)}%</span>
           </div>
         </div>
 

@@ -7,7 +7,7 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 
 ## 🏛️ สรุปสถาปัตยกรรม 3-Tab Multi-View Navigation & Human-in-the-Loop Workflow
 
-ระบบถูกออกแบบใหม่ให้แบ่งมุมมองออกเป็น 3 Tabs หลัก พร้อมระบบ **2-Stage Human-in-the-Loop Review & Commit**:
+ระบบถูกออกแบบให้แบ่งมุมมองออกเป็น 3 Tabs หลัก พร้อมระบบ **2-Stage Human-in-the-Loop Review & Commit**:
 
 ```text
 +-----------------------------------------------------------------------------------+
@@ -18,10 +18,10 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 ### 1. 📑 Tab 1: `[01. DOCUMENT INGESTION & TECHNICAL INSPECTOR]`
 - **2-Stage Human-in-the-Loop Ingestion:**
   - **Stage 1 (Staged for Review):** เมื่ออัปโหลดไฟล์หรือเลือก Preset ระบบจะสกัดข้อมูลมาแสดงพรีวิวใน Technical Sheet Inspector โดยยังไม่อัปเดตตัวเลขคาร์บอนภาพรวมในแท็บอื่น
-  - **Stage 2 (`[Upload & Commit to Google Sheet Database]`):** เมื่อผู้ใช้ตรวจสอบความถูกต้องและกดปุ่มยืนยัน ระบบจะส่งข้อมูลไปบันทึกเพิ่มแถว (Append Row) ลงใน Google Sheet ERP ผ่าน API POST (`/api/sheets/append`) และแสดงสถานะ `[SYNCED TO GOOGLE SHEET]`
+  - **Stage 2 (`[Upload & Commit to Google Sheet Database]`):** เมื่อผู้ใช้ตรวจสอบความถูกต้องและกดปุ่มยืนยัน ระบบจะส่งข้อมูลไปบันทึกเพิ่มแถว (Append Row) ลงใน Google Sheet ERP ผ่าน API POST ([`/api/sheets/append`](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/api/sheets/append/route.ts)) และแสดงสถานะ `[SYNCED TO GOOGLE SHEET]`
 - **Registered Documents & Clear Rows:** มีรายการเอกสารที่ลงทะเบียนแล้วพร้อมปุ่ม **`[Clear Ingested Rows]`** สำหรับเคลียร์ข้อมูลเพื่อรีเซ็ตกลับสู่ค่าเริ่มต้น
 - **Custom File Upload:** รองรับการลากวาง (Drag & Drop) ไฟล์ PDF/PNG/JPG ชนิด Invoices, BOMs และ Waybills
-- **Gemini Vision AI Engine:** สกัดข้อมูลโครงสร้าง JSON (Pydantic/TypeScript Schema) เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
+- **Gemini Vision AI Engine:** สกัดข้อมูลโครงสร้าง JSON เช่น `supplierName`, `materialName`, `quantity`, `transportMode`, `distanceKm`, `totalCostUSD`
 
 ### 2. 🕸️ Tab 2: `[02. SUPPLY CHAIN KNOWLEDGE GRAPH]`
 - **Document Switcher Bar:** แถบเลือกเอกสารด้านบนสุด สามารถสลับเลือกดูโหนดความสัมพันธ์และผลการตรวจสอบตามใบสั่งซื้อ (PO) แต่ละใบได้ทันที
@@ -35,7 +35,7 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 - **Document Switcher Bar:** แถบสลับเอกสาร PO ด้านบน สะท้อนตัวเลข Scope 3 Baseline และทางเลือกสีเขียวตามเอกสารใบนั้นๆ
 - **Live Google Sheets ERP Integration:** เชื่อมต่อฐานข้อมูลจัดซื้อแบบสดผ่าน Google Sheets:
   - 🔗 **Google Sheet ERP Database:** [เข้าสู่ตารางฐานข้อมูล Google Sheet ↗](https://docs.google.com/spreadsheets/d/17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4/edit?gid=0#gid=0)
-  - ดึงข้อมูลสดผ่าน API Proxy (`/api/sheets`) ขจัดปัญหา CORS และปัญหาวนลูปร้องขอข้อมูลด้วย `useCallback`
+  - ดึงข้อมูลสดผ่าน API Proxy ([`/api/sheets`](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/api/sheets/route.ts)) ขจัดปัญหา CORS และปัญหาวนลูปร้องขอข้อมูลด้วย `useCallback`
 - **Multi-Objective Scenario Matrix:** กรองแสดงผลเฉพาะแผนทางเลือกจัดซื้อสีเขียวแท้จริง (`Plan B` และ `Plan C`) แยกจากการ์ด Baseline 
 - **Recharts Scenario Simulation:** กราฟแท่งเปรียบเทียบสภาวะปัจจุบัน (Baseline Scenario) กับสภาวะพึงประสงค์ (Green Scenario) ในมิติของ **Emissions (tCO2e)** และ **Cost (฿ THB / $ USD)**
 - **Copilot 3-Tier Audit Card & Autonomous Action Center:**
@@ -52,7 +52,7 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
   - **Borders:** Default `border-zinc-800` (#27272a), Focus `border-zinc-700` (#3f3f46)
   - **Typography:** Primary `text-zinc-100`, Labels/Captions `text-zinc-400`/`text-zinc-500`, Data `text-zinc-200`
   - **Accents:** Restrained `emerald-400` สำหรับค่าคาร์บอนต่ำ และ `rose-400`/`rose-900` สำหรับจุดเสี่ยงสูง
-- **Hydration Warning Suppression:** เพิ่ม prop `suppressHydrationWarning` ใน [src/app/layout.tsx](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/layout.tsx) เพื่อป้องกันการแจ้งเตือนเตือนความขัดแย้งของ DOM จาก Browser Extensions
+- **Hydration Warning Suppression:** เพิ่ม prop `suppressHydrationWarning` ใน [layout.tsx](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/layout.tsx) เพื่อป้องกันการแจ้งเตือนความขัดแย้งของ DOM จาก Browser Extensions
 
 ---
 
@@ -73,9 +73,18 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 npm install
 ```
 
-### 2. กำหนดค่า Environment (`.env`)
-กำหนดค่า Web App URL และ Google Sheet ID ในไฟล์ `.env`:
+### 2. กำหนดค่า Environment (`.env.local`)
+คัดลอกไฟล์แม่แบบ `.env.example` เป็น `.env.local`:
+```bash
+cp .env.example .env.local
+```
+
+จากนั้นกำหนดค่าคีย์และ Web App URL ในไฟล์ `.env.local`:
 ```env
+# Google Gemini API Key (Optional: fallback อัตโนมัติเป็น Mock engine หากไม่ระบุ)
+GEMINI_API_KEY="your_actual_gemini_api_key_here"
+
+# Google Sheet & Apps Script Configuration
 GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
 GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
 NEXT_PUBLIC_GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
@@ -85,12 +94,22 @@ NEXT_PUBLIC_GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
 ```bash
 npm run dev
 ```
-เข้าใช้งานผ่านบราวเซอร์ที่ [http://localhost:3000](http://localhost:3000)
+เข้าใช้งานผ่านเบราว์เซอร์ที่ [http://localhost:3000](http://localhost:3000)
 
 ### 4. ทดสอบ Build สำหรับ Production
 ```bash
 npm run build
 ```
+
+---
+
+## 🔍 รายงานการ Audit และปรับปรุงระบบล่าสุด (Quality & Security Audit)
+
+ระบบได้รับการตรวจสอบและแก้ไขโค้ดเชิงลึก (All 15 Code Smells & Bugs Resolved):
+- **State Overwrite Fix:** ปรับแต่ง [`page.tsx`](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/page.tsx) ให้ใช้ `setDocumentList(prev => ...)` เพื่อผสานข้อมูลระหว่าง Google Sheet กับ Local Staged Documents อย่างถูกต้อง
+- **Round-Trip Data Integrity:** ขยาย API POST [`/api/sheets/append`](file:///D:/Desktop/bsd/project-maharai/CU-TU%20biztania/greenscope-poc/src/app/api/sheets/append/route.ts) ให้ส่งข้อมูลครบถ้วน 9 ฟิลด์ ป้องกันปัญหาข้อมูลถูก Hardcode ทับเมื่ออ่านกลับ
+- **API Error Handling (HTTP 502):** ปรับปรุงระบบแจ้งเตือนข้อผิดพลาดเมื่อ Apps Script Webhook ทำงานล้มเหลว แทนการแจ้ง Success หลอก
+- **Security Hardening:** แยก API Key ออกจาก Public Repository และสลับไปใช้ `.env.local` เพื่อความปลอดภัยตามมาตรฐาน Next.js
 
 ---
 
@@ -123,6 +142,6 @@ greenscope-poc/
 │   │   └── gemini.ts                  # Gemini Vision AI Extraction Service
 │   └── types/
 │       └── index.ts                   # TypeScript Interfaces
-├── .env                               # Environment variables สำหรับ Google Sheet & Apps Script
+├── .env.example                       # Template แสดงตัวแปรสภาพแวดล้อมที่ต้องตั้งค่า
 └── README.md                          # คู่มือสถาปัตยกรรมและการใช้งานฉบับอัปเดตล่าสุด
 ```

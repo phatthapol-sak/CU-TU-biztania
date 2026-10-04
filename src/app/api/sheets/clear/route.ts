@@ -18,6 +18,11 @@ export async function POST() {
           body: JSON.stringify({ action: 'clear', plan_type: 'clear' }),
           redirect: 'follow'
         });
+
+        if (!res.ok) {
+          throw new Error(`Apps Script responded with HTTP ${res.status}`);
+        }
+
         const text = await res.text();
         try {
           result = JSON.parse(text);
@@ -25,7 +30,11 @@ export async function POST() {
           result = { status: 'cleared_raw', response: text };
         }
       } catch (err) {
-        console.warn('Google Apps Script CLEAR fallback:', err);
+        console.error('Google Apps Script CLEAR failed:', err);
+        return NextResponse.json(
+          { success: false, error: 'Failed to clear rows in Google Sheet', details: String(err) },
+          { status: 502 }
+        );
       }
     }
 

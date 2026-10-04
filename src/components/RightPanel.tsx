@@ -108,7 +108,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               </div>
               <div className="bg-zinc-950 p-2 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">LEAD TIME</span>
-                <span className="font-bold text-zinc-300 text-xs">+{Math.max(1, alt.leadTimeDays - 1)}d</span>
+                <span className="font-bold text-zinc-300 text-xs">{alt.leadTimeDays}d</span>
               </div>
             </div>
           </div>

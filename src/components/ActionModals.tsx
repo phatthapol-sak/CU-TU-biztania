@@ -237,7 +237,7 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
     allocatedMaterial: alt.materialName,
     allocatedLogistics: alt.transportMode,
     projectedCarbonReductionPct: alt.carbonReductionPercentage,
-    auditHash: "0x8f92a4bc81d720f12"
+    auditHash: `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`
   },
   null,
   2

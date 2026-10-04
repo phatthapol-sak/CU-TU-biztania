@@ -115,7 +115,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
             </div>
             <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
               {documentList.map((doc) => {
-                const isSelected = doc.documentId === (stagedExtracted?.documentId || selectedDocumentId);
+                const isSelected = doc.documentId === selectedDocumentId;
                 return (
                   <button
                     key={doc.documentId}

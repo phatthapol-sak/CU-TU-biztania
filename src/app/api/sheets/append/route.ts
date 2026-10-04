@@ -20,15 +20,26 @@ export async function POST(req: Request) {
     const payload = {
       material_id: data.supplierId || data.materialId || ('MAT-00' + Date.now().toString().slice(-2)),
       material_name: data.materialName,
-      emission_factor: data.materialName?.toLowerCase().includes('recycled') || data.materialName?.toLowerCase().includes('rpp') ? 0.78 : 2.10,
+      emission_factor: data.emissionFactor ?? (data.materialName?.toLowerCase().includes('recycled') || data.materialName?.toLowerCase().includes('rpp') ? 0.78 : 2.10),
       supplier_name: data.supplierName,
       price_per_kg: data.unitCostUSD || data.price_per_kg || 50,
-      lead_time_days: 2,
+      lead_time_days: data.leadTimeDays || 2,
       plan_type: 'Staged PO',
-      recommendation: `PO: ${data.poNumber || 'PO-99412'} | Transport: ${data.transportMode || 'Road Freight'} (${data.distanceKm || 120} km)`
+      recommendation: `PO: ${data.poNumber || 'PO-99412'} | Transport: ${data.transportMode || 'Road Freight'} (${data.distanceKm || 120} km)`,
+      // Additional fields for round-trip data integrity (BUG-007)
+      document_id: data.documentId,
+      quantity: data.quantity,
+      unit: data.unit || 'kg',
+      distance_km: data.distanceKm,
+      total_cost: data.totalCostUSD,
+      issue_date: data.issueDate,
+      po_number: data.poNumber,
+      transport_mode: data.transportMode,
+      material_category: data.materialCategory,
     };
 
     let result: Record<string, unknown> = { status: 'mock_appended', payload };
+    let writeSuccess = false;
 
     if (APPS_SCRIPT_URL) {
       try {
@@ -39,19 +50,31 @@ export async function POST(req: Request) {
           redirect: 'follow'
         });
 
+        if (!res.ok) {
+          throw new Error(`Apps Script responded with HTTP ${res.status}`);
+        }
+
         const responseText = await res.text();
         try {
           result = JSON.parse(responseText);
         } catch {
           result = { status: 'posted', rawResponse: responseText };
         }
+        writeSuccess = true;
       } catch (scriptErr) {
-        console.warn('Google Apps Script POST fallback to mock engine:', scriptErr);
+        console.error('Google Apps Script POST failed:', scriptErr);
+        return NextResponse.json(
+          { success: false, error: 'Failed to write to Google Sheet via Apps Script', details: String(scriptErr) },
+          { status: 502 }
+        );
       }
+    } else {
+      // No webhook URL configured — mock/dev mode
+      writeSuccess = true;
     }
 
     return NextResponse.json({
-      success: true,
+      success: writeSuccess,
       result,
       transactionId: `TX-SHEET-${Date.now()}`,
       newDoc: data,

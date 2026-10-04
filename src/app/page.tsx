@@ -107,29 +107,33 @@ export default function Home() {
               .filter((r: any) => r.plan_type === 'Staged PO')
               .map((r: any, idx: number) => {
                 const poMatch = r.recommendation?.match(/PO:\s*([^|\s]+)/);
-                const poNumber = poMatch ? poMatch[1] : `PO-SHEET-${idx + 1}`;
+                const poNumber = poMatch ? poMatch[1] : (r.po_number || `PO-SHEET-${idx + 1}`);
+                const qty = Number(r.quantity) || 2000;
+                const dist = Number(r.distance_km) || 120;
+                const unitPrice = Number(r.price_per_kg) || 50;
                 return {
-                  documentId: r.material_id || `DOC-SHEET-${idx + 1}`,
-                  documentType: 'Invoice',
+                  documentId: r.document_id || r.material_id || `DOC-SHEET-${idx + 1}`,
+                  documentType: 'Invoice' as const,
                   fileName: `${poNumber}.pdf`,
                   supplierId: r.material_id || `SUP-00${idx + 1}`,
                   supplierName: r.supplier_name || 'Recorded Supplier',
                   materialName: r.material_name || 'Standard Material',
-                  materialCategory: 'Plastics & Polymers',
-                  quantity: 2000,
-                  unit: 'kg',
-                  transportMode: r.recommendation?.includes('Rail') ? 'Electric Rail Freight' : 'Road Diesel Freight',
-                  distanceKm: 120,
-                  totalCostUSD: (Number(r.price_per_kg) || 50) * 2000,
-                  unitCostUSD: Number(r.price_per_kg) || 50,
-                  issueDate: '2026-09-28',
+                  materialCategory: r.material_category || 'Plastics & Polymers',
+                  quantity: qty,
+                  unit: r.unit || 'kg',
+                  transportMode: (r.transport_mode as ExtractedDocumentData['transportMode'])
+                    || (r.recommendation?.includes('Rail') ? 'Electric Rail Freight' : 'Road Diesel Freight'),
+                  distanceKm: dist,
+                  totalCostUSD: Number(r.total_cost) || (unitPrice * qty),
+                  unitCostUSD: unitPrice,
+                  issueDate: r.issue_date || '2026-09-28',
                   poNumber: poNumber
                 };
               });
 
             if (sheetDocs.length > 0) {
-              setDocumentList(() => {
-                const combined = [...sheetDocs, ...MOCK_DOCUMENT_PRESETS.map(p => p.extracted)];
+              setDocumentList(prev => {
+                const combined = [...prev, ...sheetDocs, ...MOCK_DOCUMENT_PRESETS.map(p => p.extracted)];
                 return Array.from(new Map(combined.map(item => [item.documentId, item])).values());
               });
             }
@@ -353,6 +357,7 @@ export default function Home() {
     const calc = calculateScope3Emissions(defaultDoc);
     setCalculation(calc);
     fetchGoogleSheetData(defaultDoc, calc);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectPreset = (presetId: string) => {

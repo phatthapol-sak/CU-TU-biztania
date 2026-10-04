@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Network, Factory, Truck, Box, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { CarbonCalculation, ExtractedDocumentData } from '@/types';
 
@@ -11,6 +11,10 @@ interface KnowledgeGraphProps {
 
 export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calculation }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-carbon');
+
+  useEffect(() => {
+    setSelectedNodeId('node-carbon');
+  }, [extracted?.documentId]);
 
   if (!extracted || !calculation) {
     return (

@@ -26,8 +26,8 @@ GreenScope Concierge เป็นระบบ AI Agent อัจฉริยะ�
 ### 2. 🕸️ Tab 2: `[02. SUPPLY CHAIN KNOWLEDGE GRAPH]`
 - **Document Switcher Bar:** แถบเลือกเอกสารด้านบนสุด สามารถสลับเลือกดูโหนดความสัมพันธ์และผลการตรวจสอบตามใบสั่งซื้อ (PO) แต่ละใบได้ทันที
 - **Spacious SVG Topological Network Graph:** ผังโครงข่ายความสัมพันธ์ความละเอียดสูงระหว่าง:
-  $$\text{Tier-1 Supplier} \xrightarrow{\text{TRANSPORTED\_BY}} \text{Logistics Carrier} \xrightarrow{\text{IN\_PRODUCT}} \text{Production Line}$$
-  $$\text{Material Specification} \xrightarrow{\text{EMITS}} \text{Scope 3 Carbon Audit Outcome}$$
+  - `Tier-1 Supplier` ➔ `TRANSPORTED_BY` ➔ `Logistics Carrier` ➔ `IN_PRODUCT` ➔ `Production Line`
+  - `Material Specification` ➔ `EMITS` ➔ `Scope 3 Carbon Audit Outcome`
 - **Interactive Node Selection:** กดเลือก Node เพื่อดูรายละเอียดในแถบ **Node Telemetry Inspector** ด้านล่าง (4-Column Monospace Data Strip)
 - **Anomaly Highlight:** Node ที่ปล่อยคาร์บอนเกินเกณฑ์จะเน้นด้วยขอบสีแดง (`border-rose-800 font-bold`)
 
@@ -79,15 +79,23 @@ npm install
 cp .env.example .env.local
 ```
 
-จากนั้นกำหนดค่าคีย์และ Web App URL ในไฟล์ `.env.local`:
+จากนั้นกำหนดค่าคีย์และ Web App URL ในไฟล์ `.env.local` (ตรงตามรูปแบบใน `.env.example`):
 ```env
-# Google Gemini API Key (Optional: fallback อัตโนมัติเป็น Mock engine หากไม่ระบุ)
-GEMINI_API_KEY="your_actual_gemini_api_key_here"
+# Google Gemini API Key (Optional: system automatically falls back to preloaded mock engine if empty)
+GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 
-# Google Sheet & Apps Script Configuration
-GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
-GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
-NEXT_PUBLIC_GOOGLE_SHEET_ID="17_0MgXv54ILWUctKkreuiAwekj0mDMShWprgbpmXLH4"
+# -----------------------------------------------------------------------------
+# GOOGLE SHEET & APPS SCRIPT CONFIGURATION
+# -----------------------------------------------------------------------------
+
+# 1. Google Apps Script Web App URL (สำหรับยิง POST บันทึก/Append ข้อมูลลง Google Sheet)
+# วาง Web App URL ที่ได้จากการกด Deploy > New Deployment > Anyone ใน Apps Script
+GOOGLE_APPS_SCRIPT_URL=your_google_apps_script_web_app_url_here
+
+# 2. Google Sheet ID (สำหรับดึงข้อมูล CSV และสร้างลิงก์ปุ่ม [View Google Sheet ERP ↗])
+GOOGLE_SHEET_ID=your_google_sheet_id_here
+NEXT_PUBLIC_GOOGLE_SHEET_ID=your_google_sheet_id_here
 ```
 
 ### 3. รัน Development Server

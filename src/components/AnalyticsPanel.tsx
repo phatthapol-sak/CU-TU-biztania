@@ -110,10 +110,12 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
                       <span className="font-bold text-zinc-100 text-[11px] truncate" title={alt.supplierName}>{alt.supplierName}</span>
                       {isSelected ? (
                         <span className="px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 text-[9px] font-bold flex items-center gap-0.5 whitespace-nowrap">
-                          <Check className="w-3 h-3" /> SELECTED
+                          <Check className="w-3 h-3" /> {alt.supplierName.includes('EcoPlast') || alt.id.includes('1') ? 'RECOMMENDED' : 'SELECTED'}
                         </span>
+                      ) : alt.supplierName.includes('EcoPlast') || alt.id.includes('1') ? (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800 text-emerald-400 font-bold whitespace-nowrap">RECOMMENDED</span>
                       ) : (
-                        <span className="text-[10px] text-zinc-500 whitespace-nowrap">{alt.recommendationScore}% MATCH</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-semibold whitespace-nowrap">ALTERNATIVE</span>
                       )}
                     </div>
                     <div className="text-[11px] text-zinc-400 truncate mb-2.5">{alt.materialName}</div>

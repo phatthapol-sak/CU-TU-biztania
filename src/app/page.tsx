@@ -144,7 +144,7 @@ export default function Home() {
             const distanceKm = baseExtracted.distanceKm || 120;
 
             const dynamicOpts: OptimizationAlternative[] = rows
-              .filter((r: any) => r.plan_type === 'Plan B' || r.plan_type === 'Plan C')
+              .filter((r: any) => r.plan_type && r.plan_type !== 'Plan A' && r.plan_type !== 'Staged PO')
               .map((r: any, idx: number) => {
                 const altEF = Number(r.emission_factor) || 0.5;
                 const altPrice = Number(r.price_per_kg) || 58;
@@ -154,8 +154,8 @@ export default function Home() {
                 const costIncrease = Math.round(((altPrice - basePrice) / basePrice) * 100);
 
                 const totalCost = qty * altPrice;
-                const isEco = r.plan_type === 'Plan B' || reduction >= 60;
-                const trnFactor = isEco ? 0.028 : 0.096;
+                const isEco = r.plan_type === 'Plan B' || (r.transport_mode && r.transport_mode.includes('Rail'));
+                const trnFactor = isEco ? 0.028 : 0.105;
                 const transportTon = (qty / 1000) * distanceKm * trnFactor / 1000;
                 const materialTon = (qty * altEF) / 1000;
                 const totalCarbonTon = Number((materialTon + transportTon).toFixed(2));

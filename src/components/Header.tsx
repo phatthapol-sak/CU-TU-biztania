@@ -17,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabCha
   const isHighAnomaly = calculation?.baselineComparison.isAnomaly;
   const severity = calculation?.baselineComparison.anomalySeverity || 'LOW';
   const isMedium = severity === 'MEDIUM';
-  const currentTCO2e = calculation?.totalEmissionsTCO2e || 3.28;
+  const currentTCO2e = calculation?.totalEmissionsTCO2e || 3.29;
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ calculation, activeTab, onTabCha
               GreenScope Concierge
             </h1>
             <p className="text-[11px] text-zinc-500 font-normal hidden sm:block">
-              Autonomous Scope 3 Carbon Accounting & Supply Chain Procurement
+              Human-Governed Scope 3 Carbon Accounting & Supply Chain Procurement
             </p>
           </div>
         </div>

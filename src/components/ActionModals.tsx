@@ -193,7 +193,7 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
                 <li>Updated Product Carbon Footprint (PCF) ISO 14067 certificate.</li>
                 <li>Option to transition line items to Recycled PP (rPP) resin or offer price parity.</li>
               </ol>
-              <p>Best regards,<br />GreenScope Autonomous Procurement Concierge</p>
+              <p>Best regards,<br />GreenScope Procurement Concierge</p>
             </div>
 
             <div className="flex items-center justify-end space-x-2 pt-3 border-t border-zinc-800 text-xs">

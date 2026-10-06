@@ -42,7 +42,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           </span>
           <h2 className="text-xs font-mono font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
             <Bot className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
-            Copilot Diagnosis & Autonomous Actions
+            Copilot Diagnosis & Governed Actions
           </h2>
         </div>
         <span className="text-[10px] font-mono font-medium text-zinc-400 bg-zinc-950 border border-zinc-800 px-2 py-0.5 rounded whitespace-nowrap flex-shrink-0">
@@ -131,10 +131,10 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         )}
       </div>
 
-      {/* Autonomous Action Row Buttons */}
+      {/* Governed Action Row Buttons */}
       <div className="space-y-2 font-mono text-xs">
         <div className="flex items-center justify-between text-[10px] text-zinc-400 font-semibold uppercase">
-          <span>AUTONOMOUS ACTION CENTER</span>
+          <span>GOVERNED ACTION CENTER</span>
           <span className="whitespace-nowrap">HUMAN APPROVAL</span>
         </div>
 

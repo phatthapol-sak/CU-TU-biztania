@@ -13,8 +13,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'GreenScope Concierge | Autonomous Scope 3 Carbon Accounting & Green Procurement AI Agent',
-  description: 'AI-powered Scope 3 carbon accounting system that ingests unstructured supply chain documents, constructs a dynamic Knowledge Graph, detects carbon anomalies, and executes autonomous Green RFQs and supplier negotiations.',
+  title: 'GreenScope Concierge | Human-Governed Scope 3 Carbon Accounting & Green Procurement AI Agent',
+  description: 'AI-powered Scope 3 carbon accounting system that ingests unstructured supply chain documents, constructs a dynamic Knowledge Graph, detects carbon anomalies, and assists human-governed Green RFQs and ERP procurement execution.',
   keywords: ['Scope 3', 'Carbon Accounting', 'ESG', 'Supply Chain Knowledge Graph', 'Green Procurement', 'AI Concierge', 'GHG Protocol'],
 };
 

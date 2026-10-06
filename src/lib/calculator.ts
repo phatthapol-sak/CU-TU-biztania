@@ -221,7 +221,7 @@ export function generateGreenAlternatives(
       estimatedEmissionsTCO2e: isTHB ? 1.01 : alt1TotalEmissions,
       carbonReductionPercentage: isTHB ? 69 : alt1CarbonRed,
       costDiffPercentage: alt1CostDiff,
-      leadTimeDays: 3,
+      leadTimeDays: isTHB ? 4 : 3,
       certifications: ['ISCC PLUS', 'ISO 14067', 'TGO Green Label'],
       location: isTHB ? 'Chonburi, Thailand' : 'Cleveland, OH (Rail Terminal Hub)',
       recommendationScore: 96
@@ -235,10 +235,10 @@ export function generateGreenAlternatives(
       distanceKm: isTHB ? 120 : alt2Distance,
       unitCostUSD: alt2UnitCost,
       totalCostUSD: alt2TotalCost,
-      estimatedEmissionsTCO2e: isTHB ? 0.72 : alt2TotalEmissions,
+      estimatedEmissionsTCO2e: isTHB ? 0.73 : alt2TotalEmissions,
       carbonReductionPercentage: isTHB ? 78 : alt2CarbonRed,
       costDiffPercentage: alt2CostDiff,
-      leadTimeDays: 7,
+      leadTimeDays: isTHB ? 5 : 7,
       certifications: ['USDA BioPreferred', 'ISCC PLUS', 'ISO 14064'],
       location: isTHB ? 'Ayutthaya, Thailand' : 'Savannah Port GA',
       recommendationScore: 82

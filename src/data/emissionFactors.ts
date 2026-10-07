@@ -5,16 +5,16 @@ export const MATERIAL_EMISSION_FACTORS: EmissionFactor[] = [
     id: 'ef-mat-001',
     name: 'Virgin Polypropylene (PP) Polymer Resin',
     category: 'Material',
-    factorKgCO2ePerUnit: 2.10,
+    factorKgCO2ePerUnit: 1.63,
     unit: 'kgCO2e/kg',
-    source: 'DEFRA 2024 / Plastics Europe LCA',
+    source: 'TGO Standard / Ecoinvent 3.10',
     description: 'Fossil-fuel based primary virgin PP resin production cradle-to-gate.'
   },
   {
     id: 'ef-mat-002',
     name: 'Post-Consumer Recycled Polypropylene (rPP)',
     category: 'Material',
-    factorKgCO2ePerUnit: 0.78,
+    factorKgCO2ePerUnit: 0.50,
     unit: 'kgCO2e/kg',
     source: 'TGO Standard / Ecoinvent 3.10',
     description: 'Mechanically recycled rPP pellets from post-consumer waste stream.'
@@ -30,12 +30,12 @@ export const MATERIAL_EMISSION_FACTORS: EmissionFactor[] = [
   },
   {
     id: 'ef-mat-004',
-    name: 'Bio-based Polyethylene (Bio-PE)',
+    name: 'Bio-based Polypropylene (Bio-PP)',
     category: 'Material',
-    factorKgCO2ePerUnit: 0.45,
+    factorKgCO2ePerUnit: 0.35,
     unit: 'kgCO2e/kg',
     source: 'ISCC PLUS Certified LCA',
-    description: 'Sugarcane ethanol-derived bio-polyethylene with negative biogenic carbon accounting offset.'
+    description: 'Sugarcane ethanol-derived bio-polypropylene with negative biogenic carbon accounting offset.'
   },
   {
     id: 'ef-mat-005',

@@ -127,7 +127,7 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
                 <div><span className="text-zinc-500">MATERIAL_SPEC:</span> {alt.materialName}</div>
                 <div><span className="text-zinc-500">REQUIRED_QTY:</span> {extracted.quantity.toLocaleString()} kg</div>
                 <div><span className="text-zinc-500">LOGISTICS_MODE:</span> {alt.transportMode}</div>
-                <div><span className="text-zinc-500">TARGET_UNIT_PRICE:</span> {extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? '฿' : '$'}{alt.unitCostUSD} / kg</div>
+                <div><span className="text-zinc-500">TARGET_UNIT_PRICE:</span> ฿{alt.unitCostUSD} / kg</div>
                 <div><span className="text-zinc-500">LOCATION:</span> {alt.location}</div>
                 <div className="col-span-2"><span className="text-zinc-500">CERTIFICATION:</span> {alt.certifications.join(', ')}</div>
               </div>
@@ -187,7 +187,7 @@ export const ActionModals: React.FC<ActionModalsProps> = ({
                 In alignment with GreenScope Corp's 2026 Scope 3 Decarbonization Targets, we recently audited invoice {extracted.documentId} for {extracted.quantity.toLocaleString()} kg of {extracted.materialName}.
               </p>
               <p>
-                Our AI Carbon Concierge identified a Scope 3 footprint spike of <strong>{extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? '฿' : '$'}{extracted.totalCostUSD.toLocaleString()} {extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? 'THB' : 'USD'} / high tCO2e intensity</strong>. To maintain Tier-1 status, we request:
+                Our AI Carbon Concierge identified a Scope 3 footprint spike of <strong>฿{extracted.totalCostUSD.toLocaleString()} THB / high tCO2e intensity</strong>. To maintain Tier-1 status, we request:
               </p>
               <ol className="list-decimal list-inside space-y-1 pl-2 text-zinc-200">
                 <li>Updated Product Carbon Footprint (PCF) ISO 14067 certificate.</li>

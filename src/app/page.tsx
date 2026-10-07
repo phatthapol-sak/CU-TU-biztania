@@ -133,8 +133,15 @@ export default function Home() {
 
             if (sheetDocs.length > 0) {
               setDocumentList(prev => {
-                const combined = [...prev, ...sheetDocs, ...MOCK_DOCUMENT_PRESETS.map(p => p.extracted)];
-                return Array.from(new Map(combined.map(item => [item.documentId, item])).values());
+                const combined = [...sheetDocs, ...prev, ...MOCK_DOCUMENT_PRESETS.map(p => p.extracted)];
+                const uniqueMap = new Map<string, ExtractedDocumentData>();
+                for (const item of combined) {
+                  const key = item.poNumber ? `PO:${item.poNumber}` : `ID:${item.documentId}`;
+                  if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, item);
+                  }
+                }
+                return Array.from(uniqueMap.values());
               });
             }
 
@@ -293,10 +300,18 @@ export default function Home() {
       const data = await res.json();
 
       if (data.success) {
-        // 1. Add new document to registered documentList if not present
+        // 1. Add new document to registered documentList (or update existing if same PO / ID)
         setDocumentList(prev => {
-          const exists = prev.some(d => d.documentId === docToCommit.documentId);
-          return exists ? prev : [docToCommit, ...prev];
+          const existingIdx = prev.findIndex(
+            d => d.documentId === docToCommit.documentId ||
+                 (docToCommit.poNumber && d.poNumber === docToCommit.poNumber)
+          );
+          if (existingIdx >= 0) {
+            const nextList = [...prev];
+            nextList[existingIdx] = docToCommit;
+            return nextList;
+          }
+          return [docToCommit, ...prev];
         });
 
         setSelectedDocumentId(docToCommit.documentId);
@@ -365,6 +380,7 @@ export default function Home() {
     const matched = MOCK_DOCUMENT_PRESETS.find(p => p.id === presetId);
     if (matched) {
       processStagedDocument(matched.extracted, 'Preset Mock Engine');
+      setSelectedDocumentId(matched.extracted.documentId);
     }
   };
 
@@ -382,15 +398,18 @@ export default function Home() {
           body: JSON.stringify({ fileBase64: base64, fileName: file.name })
         });
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.extracted) {
           processStagedDocument(data.extracted, data.source);
+          setSelectedDocumentId(data.extracted.documentId);
         } else {
           processStagedDocument(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
+          setSelectedDocumentId(MOCK_DOCUMENT_PRESETS[0].extracted.documentId);
         }
       };
       reader.readAsDataURL(file);
     } catch {
       processStagedDocument(MOCK_DOCUMENT_PRESETS[0].extracted, 'Preset Mock Engine');
+      setSelectedDocumentId(MOCK_DOCUMENT_PRESETS[0].extracted.documentId);
     }
   };
 

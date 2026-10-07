@@ -268,15 +268,13 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                     <div>
                       <span className="text-zinc-500 block text-[9px]">UNIT_PRICE</span>
                       <span className="font-bold text-zinc-200 whitespace-nowrap">
-                        {stagedExtracted.supplierName.includes('Thai') || stagedExtracted.fileName.includes('THAI') ? '฿' : '$'}
-                        {stagedExtracted.unitCostUSD} / {stagedExtracted.unit}
+                        ฿{stagedExtracted.unitCostUSD} / {stagedExtracted.unit}
                       </span>
                     </div>
                     <div>
                       <span className="text-zinc-500 block text-[9px]">TOTAL_VALUE</span>
                       <span className="font-bold text-emerald-400 whitespace-nowrap">
-                        {stagedExtracted.supplierName.includes('Thai') || stagedExtracted.fileName.includes('THAI') ? '฿' : '$'}
-                        {stagedExtracted.totalCostUSD.toLocaleString()} {stagedExtracted.supplierName.includes('Thai') || stagedExtracted.fileName.includes('THAI') ? 'THB' : 'USD'}
+                        ฿{stagedExtracted.totalCostUSD.toLocaleString()} THB
                       </span>
                     </div>
                   </div>

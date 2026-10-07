@@ -24,9 +24,8 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({
 
   if (!extracted || !calculation) return null;
 
-  const isTHB = extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI');
-  const currSym = isTHB ? '฿' : '$';
-  const currUnit = isTHB ? 'THB' : 'USD';
+  const currSym = '฿';
+  const currUnit = 'THB';
 
   const activeAlt = alternatives.find(a => a.id === selectedAltId) || alternatives[0];
 

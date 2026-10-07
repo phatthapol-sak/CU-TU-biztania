@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const payload = {
       material_id: data.supplierId || data.materialId || ('MAT-00' + Date.now().toString().slice(-2)),
       material_name: data.materialName,
-      emission_factor: data.emissionFactor ?? (data.materialName?.toLowerCase().includes('recycled') || data.materialName?.toLowerCase().includes('rpp') ? 0.78 : 2.10),
+      emission_factor: data.emissionFactor ?? (data.materialName?.toLowerCase().includes('recycled') || data.materialName?.toLowerCase().includes('rpp') ? 0.50 : 1.63),
       supplier_name: data.supplierName,
       price_per_kg: data.unitCostUSD || data.price_per_kg || 50,
       lead_time_days: data.leadTimeDays || 2,

@@ -65,9 +65,9 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
     {
       id: 'node-production',
       title: 'Production Facility',
-      name: extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? 'Assembly Hub 1, Chonburi' : 'Assembly Hub 1 (Line A)',
+      name: 'Assembly Hub 1, Chonburi',
       value: `PO: ${extracted.poNumber}`,
-      subtext: `${extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? '฿' : '$'}${extracted.totalCostUSD.toLocaleString()} ${extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI') ? 'THB' : 'USD'}`,
+      subtext: `฿${extracted.totalCostUSD.toLocaleString()} THB`,
       type: 'PRODUCT',
       icon: Box,
       x: 580,
@@ -127,12 +127,11 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ extracted, calcu
           { key: 'EMISSIONS_TOTAL', val: `${(calculation.materialEmissionsKgCO2e / 1000).toFixed(2)} tCO2e` }
         ];
       case 'node-production':
-        const isThaiFacility = extracted.supplierName.includes('Thai') || extracted.fileName.includes('THAI');
         return [
-          { key: 'FACILITY_DESTINATION', val: isThaiFacility ? 'GreenScope Assembly Hub 1, Chonburi' : 'GreenScope Assembly Hub 1, Columbus OH' },
+          { key: 'FACILITY_DESTINATION', val: 'GreenScope Assembly Hub 1, Chonburi' },
           { key: 'PO_NUMBER', val: extracted.poNumber },
-          { key: isThaiFacility ? 'TOTAL_COST_THB' : 'TOTAL_COST_USD', val: `${isThaiFacility ? '฿' : '$'}${extracted.totalCostUSD.toLocaleString()}` },
-          { key: 'CARBON_INTENSITY', val: `${calculation.carbonIntensityPerUSD} kgCO2e / ${isThaiFacility ? '฿' : '$'}` }
+          { key: 'TOTAL_COST_THB', val: `฿${extracted.totalCostUSD.toLocaleString()}` },
+          { key: 'CARBON_INTENSITY', val: `${calculation.carbonIntensityPerUSD} kgCO2e / ฿` }
         ];
       case 'node-carbon':
       default:
